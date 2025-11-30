@@ -1,0 +1,150 @@
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  padding: 15px 25px;
+  border-radius: 10px;
+  color: white;
+  gap: 50px;
+  margin: 30px;
+}
+
+/* Department-specific colors */
+.department-opd {
+  background: linear-gradient(90deg, #003A6C, #004a8c);
+}
+
+.department-gco {
+  background: linear-gradient(90deg, #00451D, #00652d);
+}
+
+.department-inf {
+  background: linear-gradient(90deg, #640C17, #841c27);
+}
+
+.dashboard-header:not([class*="department-"]) {
+  background: linear-gradient(90deg, #0a1a3c, #142f64);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  font-size: 31px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-image {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.logo-text-container {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.logo-main-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.logo-department-text {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.nav-center {
+  display: flex;
+  gap: 25px;
+}
+
+.nav-item {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s, border-bottom 0.3s;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  color: white;
+}
+
+.nav-item.active {
+  color: white;
+  border-bottom: 2px solid orange;
+  padding-bottom: 5px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.date-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 21px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.new-service-btn {
+  background: orange;
+  border: none;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.new-service-btn:hover {
+  background: darkorange;
+}
+
+.notification-icon {
+  font-size: 21px;
+  cursor: pointer;
+}
+
+.profile-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #ffffff33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

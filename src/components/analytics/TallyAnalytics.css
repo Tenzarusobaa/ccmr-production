@@ -1,0 +1,59 @@
+.tally-analytics-container {
+  width: 100%;
+}
+
+.dashboard-tallies {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.tally-box {
+  flex: 1;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border: 1px solid #e9ecef;
+  transition: transform 0.2s ease;
+}
+
+.tally-box:hover {
+  transform: translateY(-2px);
+}
+
+.tally-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tally-value {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* White tally boxes specific styles */
+.tally-box:not(:first-child) .tally-title {
+  color: #6c757d;
+}
+
+.tally-box:not(:first-child) .tally-value {
+  color: #495057;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .dashboard-tallies {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .tally-box {
+    flex: 0 0 auto;
+  }
+}

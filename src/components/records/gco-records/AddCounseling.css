@@ -1,0 +1,159 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content.large {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #004080;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.box {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background: #fafafa;
+}
+
+h4 {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #003366;
+}
+
+.form-section.two-columns {
+  display: flex;
+  gap: 20px;
+}
+
+.form-section.two-columns .box {
+  flex: 1;              /* 👈 makes each box expand equally */
+  width: 100%;          /* ensures they fill the row */
+  box-sizing: border-box;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 8px;
+  column-gap: 10px;
+}
+
+textarea,
+input,
+select {
+  width: 100%;
+  max-width: 100%;     /* prevent overflow */
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.checkbox {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-upload {
+  border: 2px dashed #003366;
+  padding: 20px;
+  text-align: center;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.file-upload span {
+  color: #004080;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background: #003366;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 30px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.save-btn:hover {
+  background: #0055aa;
+}
+
+.char-limit {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* Add to AddCounseling.css */
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f8ff;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}

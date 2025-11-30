@@ -1,0 +1,143 @@
+/* src/components/tables/DataTable.css */
+.table-scroll-container {
+  flex: 1;
+  overflow: auto;
+  border-radius: 8px;
+  min-height: 200px;
+  height: 100%;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.data-table th {
+  background: #0d3b66;
+  color: white;
+  position: sticky;
+  top: 0;
+}
+
+.data-table td {
+  height: 25px;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+
+.data-table tbody tr:active {
+  background-color: #e8e8e8;
+}
+
+/* Empty table state */
+.no-records {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Status styles */
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-resolved {
+  background-color: #d1edff;
+  color: #0c5460;
+}
+
+.status-ongoing {
+  background-color: #ffeaa7;
+  color: #8d6e00;
+}
+
+.status-unknown {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.inf-status-scheduled {
+  color: #001183;
+  font-weight: bold;
+}
+
+.inf-status-to-schedule {
+  color: #E30800;
+  font-weight: bold;
+}
+
+.inf-status-done {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status-ongoing {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.status-resolved {
+  color: #003A6C;
+  font-weight: bold;
+}
+
+.status-scheduled {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.status-to-schedule {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.status-done {
+  color: #0d3b66;
+  font-weight: 500;
+}
+
+.status-medical {
+  color: #e74c3c;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.status-psychological {
+  color: #9b59b6;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.status-general {
+  color: #3498db;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}

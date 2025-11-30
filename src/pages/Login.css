@@ -1,0 +1,194 @@
+.login-container {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+}
+
+/* Left side with background and overlay */
+.left {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #003A6C;
+    padding: 20px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+}
+
+.left .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4); /* Adjust darkness here */
+    z-index: 1;
+}
+
+.left::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40%;
+    /* width of fade effect */
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, white 100%);
+    z-index: 1;
+}
+
+.left-content {
+    position: relative;
+    z-index: 2;
+    /* make sure logo/text stay above overlays */
+    text-align: center;
+}
+
+.left-content img {
+    width: 300px;
+    margin-bottom: 20px;
+    border-radius: 500px;
+}
+
+.left-content h2 {
+    margin: 10px 0 0;
+    font-size: 50px;
+}
+
+.left-content p {
+    margin: 5px 0;
+    font-size: 25px;
+    color: #003A6C
+    /* black outline */
+}
+
+
+/* Right side */
+.right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+}
+
+.login-box {
+    width: 350px;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.google-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #003A6C;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    border-radius: 10px;
+}
+
+.google-btn img {
+    width: 20px;
+}
+
+.divider {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #003A6C
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+    color: #003A6C;
+}
+
+.divider:not(:empty)::before {
+    margin-right: .75em;
+    color: #003A6C;
+}
+
+.divider:not(:empty)::after {
+    margin-left: .75em;
+    color: #003A6C;
+}
+
+/* Floating label container */
+.input-group {
+    position: relative;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.input-group input {
+    width: 95%;
+    padding: 12px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #777;
+    font-size: 16px;
+    pointer-events: none;
+    transition: 0.2s ease all;
+    background: white;
+    padding: 0 5px;
+}
+
+/* When input is focused or has text */
+.input-group input:focus+label,
+.input-group input:not(:placeholder-shown)+label {
+    top: -8px;
+    left: 8px;
+    font-size: 12px;
+    color: #003A6C;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+.options a {
+    text-decoration: none;
+    color: #003A6C;
+}
+
+.login-btn {
+    width: 103%;
+    background: #003A6C;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}

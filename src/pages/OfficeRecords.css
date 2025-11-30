@@ -1,0 +1,176 @@
+/* src/pages/OfficeRecords.css */
+.office-records-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Background split - now applied to container pseudo-element */
+.office-records-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30vh;
+  z-index: -1;
+}
+
+.office-records-container::after {
+  content: '';
+  position: fixed;
+  top: 30vh;
+  left: 0;
+  right: 0;
+  height: 70vh;
+  background: #F2F8FC;
+  z-index: -1;
+}
+
+/* OPD Color Scheme */
+.office-records-opd::before {
+  background: #003A6C;
+}
+
+.office-records-opd .data-table th {
+  background-color: #003A6C;
+}
+
+/* GCO Color Scheme */
+.office-records-gco::before {
+  background: #00451D;
+}
+
+.office-records-gco .data-table th {
+  background-color: #00451D;
+}
+
+/* INF Color Scheme */
+.office-records-inf::before {
+  background: #640C17;
+}
+
+.office-records-inf .data-table th {
+  background-color: #640C17;
+}
+
+/* Default Color Scheme */
+.office-records-default::before {
+  background: #0a1a3c;
+}
+
+.office-records-default .data-table th {
+  background-color: #0a1a3c;
+}
+
+.office-records-header {
+  margin: 5px auto;
+  width: 95%;
+  color: #F2F8FC;
+  border-radius: 10px;
+  position: relative;
+  z-index: 1;
+  margin-top: 10px;
+}
+
+.header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left h2 {
+  margin: 0 0 5px;
+  font-size: 24px;
+}
+
+.header-right {
+  gap: 10px;
+}
+
+.content {
+  margin: 5px auto;
+  width: 95%;
+  background: #F2F8FC;
+  border: 1px solid #ddd;
+  height: 70vh;
+  position: relative;
+  z-index: 1;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+/* Updated Records Table to match DataTable styling */
+.data-table-container {
+  height: calc(100vh - 170px);
+  display: flex;
+  flex-direction: column;
+}
+
+.data-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+
+.data-table-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: 1px solid #003A6C;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #003A6C;
+  color: white;
+}
+
+.footer {
+  margin: 5px auto;
+  text-align: center;
+  font-size: 15px;
+  width: 95%;
+  color: #003A6C
+}
+
+.footer a {
+  color: #7c3aed;
+  text-decoration: none;
+  margin: 0 5px;
+}
+
+/* Status styles */
+.loading-state, .error-state, .no-records {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.error-state {
+  color: #d32f2f;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  background-color: #1565c0;
+}

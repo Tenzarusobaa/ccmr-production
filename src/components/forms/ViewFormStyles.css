@@ -1,0 +1,274 @@
+/* src/components/forms/ViewFormStyles.css */
+
+/* View Form Specific Styles */
+.view-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.view-sections-row {
+  display: flex;
+  gap: 20px;
+}
+
+.view-section {
+  flex: 1;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.view-section-full {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.view-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.view-group {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.view-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.view-value {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.description-text,
+.remarks-text {
+  white-space: pre-wrap;
+  line-height: 1.5;
+  min-height: auto;
+  padding: 12px;
+}
+
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.attachment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.attachment-name {
+  font-weight: 500;
+}
+
+.btn-download {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-download:hover {
+  background: #218838;
+}
+
+.no-attachments {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Status and level badges */
+.status-badge,
+.violation-level,
+.referral-status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-ongoing { background: #fff3cd; color: #856404; }
+.status-resolved { background: #d1edff; color: #004085; }
+.status-scheduled { background: #d1edff; color: #004085; }
+.status-completed { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+.status-no-show { background: #e2e3e5; color: #383d41; }
+.status-unknown { background: #e9ecef; color: #495057; }
+
+.violation-minor { background: #d4edda; color: #155724; }
+.violation-major { background: #fff3cd; color: #856404; }
+.violation-serious { background: #f8d7da; color: #721c24; }
+.violation-unknown { background: #e9ecef; color: #495057; }
+
+.referral-pending { background: #fff3cd; color: #856404; }
+.referral-confirmed { background: #d4edda; color: #155724; }
+.referral-rejected { background: #f8d7da; color: #721c24; }
+
+/* Add these styles to your existing ViewFormStyles.css */
+
+.attachments-list {
+  width: 100%;
+}
+
+.attachments-list h5 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.file-item-view {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.file-item-view:hover {
+  background-color: #e9ecef;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.file-icon-view {
+  font-size: 24px;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.file-info-view {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name-view {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.file-details-view {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.file-type {
+  font-weight: 500;
+}
+
+.file-size {
+  color: #495057;
+}
+
+.file-action-view {
+  margin-left: 10px;
+}
+
+.download-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.download-btn:hover {
+  background-color: rgba(0,0,0,0.1);
+}
+
+.no-attachments {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .file-item-view {
+    padding: 10px 12px;
+  }
+  
+  .file-icon-view {
+    font-size: 20px;
+    margin-right: 12px;
+  }
+  
+  .file-name-view {
+    font-size: 14px;
+  }
+  
+  .file-details-view {
+    font-size: 11px;
+  }
+}
+
+/* File classification view styles */
+.file-classification-view {
+  margin-top: 5px;
+}
+
+.classification-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.classification-tag.medical {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+}
+
+.classification-tag.psychological {
+  background: #fff3e0;
+  color: #ef6c00;
+  border: 1px solid #ef6c00;
+}
+
+.classification-tag.unclassified {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}

@@ -1,0 +1,57 @@
+// src/pages/Dashboard/Dashboard.js
+import React from 'react';
+import DashboardNavigation from '../components/navigation/DashboardNavigation';
+
+
+const Dashboard = ({ userData, onLogout }) => {
+  // Get department from userData or localStorage
+  const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
+  const name = userData?.name || localStorage.getItem('userName') || 'User';
+
+  return (
+    <div className="dashboard-container">
+      <DashboardNavigation />
+      
+      <header className="dashboard-header">
+        <div className="header-content">
+          <h1>CCMR Dashboard</h1>
+          <div className="user-info">
+            <span>Welcome, {name}</span>
+            <button onClick={onLogout} className="logout-btn">
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="dashboard-main">
+        <div className="welcome-card">
+          <h2>Hello, {name}.</h2>
+          <p className="session-info">Session holder: {department}</p>
+          
+          <div className="user-details">
+            <h3>User Information:</h3>
+            <ul>
+              <li><strong>Name:</strong> {name}</li>
+              <li><strong>Email:</strong> {userData?.email || localStorage.getItem('userEmail')}</li>
+              <li><strong>Department:</strong> {department}</li>
+              <li><strong>User Type:</strong> {userData?.type || localStorage.getItem('userType')}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="dashboard-actions">
+          <h3>Quick Actions</h3>
+          <div className="action-buttons">
+            <button className="action-btn">View Cases</button>
+            <button className="action-btn">Manage Records</button>
+            <button className="action-btn">Reports</button>
+            <button className="action-btn">Settings</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Dashboard;

@@ -1,0 +1,232 @@
+/* src/components/forms/FormStyles.css */
+
+/* Common Form Styles */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-sections-row {
+  display: flex;
+  gap: 24px;
+}
+
+.form-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section-full {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section h4,
+.form-section-full h4 {
+  margin: 0 0 8px 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  font-size: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group select {
+  width: 300px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #003A6C;
+  box-shadow: 0 0 0 2px rgba(0, 58, 108, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Autocomplete Styles */
+.autocomplete-container {
+  position: relative;
+}
+
+.autocomplete-input {
+  width: 100%;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.autocomplete-item:hover {
+  background-color: #f5f5f5;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item strong {
+  color: #003A6C;
+}
+
+/* Attachment Styles */
+.attachment-box {
+  border: 2px dashed;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: rgba(0, 58, 108, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.attachment-box:hover {
+  background-color: rgba(0, 58, 108, 0.1);
+}
+
+.attachment-content p {
+  margin: 0;
+  font-weight: 500;
+  color: #003A6C;
+  font-size: 16px;
+}
+
+/* Type-specific attachment colors */
+.OPD .attachment-box {
+  border-color: #003A6C;
+  background-color: rgba(0, 58, 108, 0.05);
+}
+
+.GCO .attachment-box {
+  border-color: #00451D;
+  background-color: rgba(0, 69, 29, 0.05);
+}
+
+.INF .attachment-box {
+  border-color: #640C17;
+  background-color: rgba(100, 12, 23, 0.05);
+}
+
+/* Add to FormStyles.css */
+.validation-error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #ffeaea;
+  border: 1px solid #e74c3c;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* File classification styles */
+.file-item.with-classification {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.file-classification {
+  display: flex;
+  gap: 16px;
+  margin-left: 32px;
+}
+
+.classification-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+}
+
+.classification-checkbox input[type="checkbox"] {
+  margin: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.file-upload-info {
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #640C17;
+}
+
+.file-upload-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.validation-error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #fdf2f2;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}

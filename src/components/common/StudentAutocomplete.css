@@ -1,0 +1,67 @@
+/* src/components/common/StudentAutocomplete.css */
+.student-autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.autocomplete-input:focus {
+  outline: none;
+  border-color: #003A6C;
+  box-shadow: 0 0 0 2px rgba(0, 58, 108, 0.1);
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestion-item:hover {
+  background-color: #f5f5f5;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item.loading {
+  justify-content: center;
+  color: #666;
+  font-style: italic;
+}
+
+.student-id {
+  font-weight: 500;
+  color: #333;
+}
+
+.student-name {
+  color: #666;
+  font-size: 0.9em;
+}

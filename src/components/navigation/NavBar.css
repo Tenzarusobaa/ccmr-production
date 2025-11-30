@@ -1,0 +1,145 @@
+/* src/components/navigation/NavBar.css */
+.navbar-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px;
+  background: #F2F6FC;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Department-specific border colors */
+.navbar-container.department-opd {
+  border-top: 4px solid #003A6C;
+}
+
+.navbar-container.department-gco {
+  border-top: 4px solid #00451D;
+}
+
+.navbar-container.department-inf {
+  border-top: 4px solid #640C17;
+}
+
+.navbar-container:not([class*="department-"]) {
+  border-top: 4px solid #0a1a3c;
+}
+
+.navbar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-logo-image {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.navbar-logo-text-container {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.navbar-logo-main-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.navbar-logo-department-text {
+  font-size: 14px;
+  color: #666;
+}
+
+.navbar-center {
+  display: flex;
+  gap: 25px;
+}
+
+.navbar-item {
+  color: #666;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s, border-bottom 0.3s;
+  white-space: nowrap;
+  padding: 8px 0;
+}
+
+.navbar-item:hover {
+  color: #333;
+}
+
+.navbar-item.active {
+  color: #333;
+  border-bottom: 2px solid;
+  padding-bottom: 5px;
+}
+
+/* Department-specific active item colors */
+.navbar-container.department-opd .navbar-item.active {
+  border-bottom-color: #003A6C;
+}
+
+.navbar-container.department-gco .navbar-item.active {
+  border-bottom-color: #00451D;
+}
+
+.navbar-container.department-inf .navbar-item.active {
+  border-bottom-color: #640C17;
+}
+
+.navbar-container:not([class*="department-"]) .navbar-item.active {
+  border-bottom-color: #0a1a3c;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar-notification-icon {
+  font-size: 21px;
+  cursor: pointer;
+  color: #666;
+}
+
+.navbar-notification-icon:hover {
+  color: #333;
+}
+
+.navbar-profile-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #333;
+}
+
+.navbar-logout-btn {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.navbar-logout-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+  border-color: #999;
+}

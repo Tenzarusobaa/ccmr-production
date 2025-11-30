@@ -1,0 +1,114 @@
+/* src/pages/DemoOverlay.css */
+.demo-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Allow clicks to pass through */
+  z-index: 9999; /* Ensure it's above all other content */
+}
+
+.demo-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 4rem;
+  font-weight: 900;
+  color: rgba(0, 58, 108, 1); /* Very light transparent blue */
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: 2px;
+}
+
+/* Optional: Add multiple watermarks for better coverage */
+.demo-overlay::before {
+  content: "CCMR Deployment Demo";
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  transform: rotate(-15deg);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: rgba(0, 58, 108, 0.5);
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: 1px;
+}
+
+.demo-overlay::after {
+  content: "CCMR Deployment Demo";
+  position: absolute;
+  bottom: 20%;
+  right: 10%;
+  transform: rotate(15deg);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: rgba(0, 58, 108, 0.5);
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: 1px;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .demo-watermark {
+    font-size: 3rem;
+  }
+  
+  .demo-overlay::before,
+  .demo-overlay::after {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .demo-watermark {
+    font-size: 2.5rem;
+    transform: translate(-50%, -50%) rotate(-25deg);
+  }
+  
+  .demo-overlay::before {
+    top: 15%;
+    left: 5%;
+    font-size: 1.5rem;
+  }
+  
+  .demo-overlay::after {
+    bottom: 15%;
+    right: 5%;
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .demo-watermark {
+    font-size: 2rem;
+    transform: translate(-50%, -50%) rotate(-20deg);
+  }
+  
+  .demo-overlay::before,
+  .demo-overlay::after {
+    font-size: 1.2rem;
+  }
+}
+
+/* Optional: Add subtle animation for the main watermark */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.demo-watermark {
+  animation: subtle-pulse 8s ease-in-out infinite;
+}

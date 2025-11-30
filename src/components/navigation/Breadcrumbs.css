@@ -1,0 +1,38 @@
+/* src/components/navigation/Breadcrumbs.css */
+.breadcrumbs {
+  margin: 10px 0 5px 0;
+  font-size: 12px;
+  color: #F2F8FC;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.breadcrumb-link {
+  background: none;
+  border: none;
+  color: #F2F8FC;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  font-size: 12px;
+}
+
+.breadcrumb-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.breadcrumb-current {
+  color: #F2F8FC;
+  padding: 4px 8px;
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  margin: 0 8px;
+  color: #F2F8FC;
+}

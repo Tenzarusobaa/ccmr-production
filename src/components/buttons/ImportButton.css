@@ -1,0 +1,48 @@
+/* src/components/buttons/ImportButton.css */
+.import-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #F2F6FC;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 12px;
+  color: white; /* Text color white for better contrast on dark backgrounds */
+}
+
+.import-btn:hover {
+  background-color: #F2F6FC !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: black; /* Text color black for better contrast on light background */
+  border: 1px solid transparent;
+}
+
+.import-btn:active {
+  transform: translateY(0);
+}
+
+.import-icon {
+  font-size: 14px;
+}
+
+/* Type-specific backgrounds (unhovered state) */
+.import-opd {
+  background-color: #003A6C;
+}
+
+.import-gco {
+  background-color: #00451D;
+}
+
+.import-inf {
+  background-color: #640C17;
+}
+
+.import-default {
+  background-color: #0a1a3c;
+}
