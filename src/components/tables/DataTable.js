@@ -51,7 +51,10 @@ const DataTable = ({ data, columns, type, onRowClick, onSort, sortConfig }) => {
         </thead>
         <tbody>
           {data.map((row, index) => (
-            <tr key={row.id || index} onClick={() => onRowClick && onRowClick(row)}>
+            <tr 
+              key={row.caseNo || `row-${index}`} 
+              onClick={() => onRowClick && onRowClick(row)}
+            >
               {columns.map((column) => (
                 <td key={column.key}>
                   {column.render ? column.render(row[column.key], row) : row[column.key]}

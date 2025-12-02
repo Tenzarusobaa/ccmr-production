@@ -14,6 +14,7 @@ const FilterButton = ({ type = 'default', onClick, currentFilter }) => {
   const getFilterLabel = () => {
     switch (currentFilter) {
       case 'ALL': return 'All Records';
+      case 'MEDICALPSYCHOLOGICAL': return 'Medical & Psychological Records';
       case 'MEDICAL': return 'Medical Only';
       case 'PSYCHOLOGICAL': return 'Psychological Only';
       default: return 'All Records';

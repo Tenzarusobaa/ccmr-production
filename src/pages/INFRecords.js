@@ -50,7 +50,8 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
   // Get filter title based on current state
   const getFilterTitle = () => {
     switch (currentFilter) {
-      case 'ALL': return "Medical and Psychological Records";
+      case 'ALL': return "All Records";
+      case 'MEDICALPSYCHOLOGICAL': return "Medical and Psychological Records";
       case 'MEDICAL': return "Medical Records";
       case 'PSYCHOLOGICAL': return "Psychological Records";
       default: return "Medical Records";
@@ -91,6 +92,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
     if (currentFilter === 'ALL') return records;
 
     return records.filter((record) => {
+      if (currentFilter === 'MEDICALPSYCHOLOGICAL') {
+        return record.isMedical === "Yes" && record.isPsychological === "Yes";
+      }
       if (currentFilter === 'MEDICAL') {
         return record.isMedical === "Yes" && record.isPsychological === "No";
       }
@@ -134,7 +138,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
 
   // Cycle through filter states
   const cycleFilter = () => {
-    const filters = ['ALL', 'MEDICAL', 'PSYCHOLOGICAL'];
+    const filters = ['ALL', 'MEDICALPSYCHOLOGICAL', 'MEDICAL', 'PSYCHOLOGICAL'];
     const currentIndex = filters.indexOf(currentFilter);
     const nextIndex = (currentIndex + 1) % filters.length;
     setCurrentFilter(filters[nextIndex]);

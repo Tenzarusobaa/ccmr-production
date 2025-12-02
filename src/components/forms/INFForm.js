@@ -18,7 +18,8 @@ const INFForm = ({
   onRemoveExistingFile,
   onRemoveNewFile,
   onFileClassifications,
-  isEditMode = false
+  isEditMode = false,
+  isDisabled = false // NEW: Disable form fields for OPD users
 }) => {
   const fileInputRef = useRef(null);
   const [validationError, setValidationError] = useState('');
@@ -160,6 +161,7 @@ const INFForm = ({
                 isLoading={isLoading}
                 placeholder="Enter ID Number"
                 required={true}
+                disabled={isDisabled} // NEW: Disable for OPD users
               />
             </div>
             <div className="form-group">
@@ -170,7 +172,7 @@ const INFForm = ({
                 name="studentName"
                 value={formData.studentName} 
                 onChange={onInputChange}
-                disabled 
+                disabled={true || isDisabled} // Always disabled + OPD restriction
               />
             </div>
           </div>
@@ -183,7 +185,7 @@ const INFForm = ({
                 name="strand"
                 value={formData.strand} 
                 onChange={onInputChange}
-                disabled 
+                disabled={true || isDisabled} // Always disabled + OPD restriction
               />
             </div>
             <div className="form-group">
@@ -194,7 +196,7 @@ const INFForm = ({
                 name="gradeLevel"
                 value={formData.gradeLevel} 
                 onChange={onInputChange}
-                disabled 
+                disabled={true || isDisabled} // Always disabled + OPD restriction
               />
             </div>
             <div className="form-group">
@@ -205,7 +207,7 @@ const INFForm = ({
                 name="section"
                 value={formData.section} 
                 onChange={onInputChange}
-                disabled 
+                disabled={true || isDisabled} // Always disabled + OPD restriction
               />
             </div>
           </div>
@@ -223,6 +225,7 @@ const INFForm = ({
               onChange={onInputChange}
               placeholder="Enter subject or concern"
               required
+              disabled={isDisabled} // NEW: Disable for OPD users
             />
           </div>
           <div className="form-group">
@@ -233,6 +236,7 @@ const INFForm = ({
               value={formData.status} 
               onChange={onInputChange}
               required
+              disabled={isDisabled} // NEW: Disable for OPD users
             >
               <option value="">- Select Status -</option>
               <option value="Ongoing">Ongoing</option>
@@ -248,6 +252,7 @@ const INFForm = ({
               value={formData.referredToGCO} 
               onChange={onInputChange}
               required
+              disabled={isDisabled} // NEW: Disable for OPD users
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>
@@ -262,6 +267,7 @@ const INFForm = ({
                 value={formData.isPsychological} 
                 onChange={onInputChange}
                 required
+                disabled={isDisabled} // NEW: Disable for OPD users
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -276,6 +282,7 @@ const INFForm = ({
                 value={formData.isMedical} 
                 onChange={onInputChange}
                 required
+                disabled={isDisabled} // NEW: Disable for OPD users
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -305,6 +312,7 @@ const INFForm = ({
             rows="4"
             placeholder="Enter detailed medical/psychological information..."
             required
+            disabled={isDisabled} // NEW: Disable for OPD users
           ></textarea>
         </div>
         <div className="form-group">
@@ -316,6 +324,7 @@ const INFForm = ({
             onChange={onInputChange}
             rows="2"
             placeholder="Enter any additional remarks..."
+            disabled={isDisabled} // NEW: Disable for OPD users
           ></textarea>
         </div>
       </div>
@@ -355,6 +364,7 @@ const INFForm = ({
                   className="remove-file-btn"
                   onClick={() => onRemoveExistingFile(file.filename)}
                   title="Remove file"
+                  disabled={isDisabled} // NEW: Disable for OPD users
                 >
                   ×
                 </button>
@@ -363,7 +373,7 @@ const INFForm = ({
           </div>
         )}
 
-        {/* File upload area */}
+        {/* File upload area - ALWAYS ENABLED even for OPD users */}
         {remainingSlots > 0 && (
           <div 
             className="attachment-box" 
@@ -403,6 +413,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isMedical || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isMedical', e.target.checked)}
+                        disabled={isDisabled} // NEW: Disable for OPD users
                       />
                       <span>Medical</span>
                     </label>
@@ -412,6 +423,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isPsychological || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isPsychological', e.target.checked)}
+                        disabled={isDisabled} // NEW: Disable for OPD users
                       />
                       <span>Psychological</span>
                     </label>
@@ -422,6 +434,7 @@ const INFForm = ({
                     className="remove-file-btn"
                     onClick={() => onRemoveNewFile(index)}
                     title="Remove file"
+                    disabled={isDisabled} // NEW: Disable for OPD users
                   >
                     ×
                   </button>

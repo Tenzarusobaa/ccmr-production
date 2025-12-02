@@ -548,7 +548,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       onRemoveExistingFile: handleRemoveExistingFile,
       onRemoveNewFile: handleRemoveNewFile,
       onFileClassifications: handleFileClassifications,
-      isEditMode: true
+      isEditMode: true,
+      // NEW: Add disabled prop for OPD users
+      isDisabled: userType === "OPD" && recordType !== "OPD"
     };
 
     switch (recordType) {

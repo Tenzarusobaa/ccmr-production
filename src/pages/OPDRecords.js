@@ -73,6 +73,19 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick }) => {
       if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
       if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
+      // Special handling for caseNo to sort numerically
+      if (sortConfig.key === 'caseNo') {
+        const aNum = parseInt(aValue, 10);
+        const bNum = parseInt(bValue, 10);
+        if (isNaN(aNum) && isNaN(bNum)) return 0;
+        if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
+        
+        return sortConfig.direction === 'asc' 
+          ? aNum - bNum 
+          : bNum - aNum;
+      }
+
       // Handle different data types
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortConfig.direction === 'asc'
