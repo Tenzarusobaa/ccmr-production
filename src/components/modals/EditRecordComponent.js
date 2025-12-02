@@ -55,19 +55,67 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   const recordType = detectRecordType(record);
   const userType = type;
 
+  // Helper function to format date for input field
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    
+    // Handle different date formats
+    if (dateString === '0000-00-00' || dateString === '0000-00-00 00:00:00') return '';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+
+  // Helper function to format time for input field
+  const formatTimeForInput = (timeString) => {
+    if (!timeString) return '';
+    
+    // Handle different time formats
+    if (timeString === '00:00:00.000000' || timeString === '00:00:00') return '';
+    
+    // Extract just the time part (HH:MM)
+    const timeParts = timeString.split(':');
+    if (timeParts.length >= 2) {
+      return `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
+    }
+    
+    return timeString;
+  };
+
+  // Helper function to normalize status value
+  const normalizeStatus = (status) => {
+    if (!status) return '';
+    
+    // Convert database status to form status
+    const statusMap = {
+      'SCHEDULED': 'Scheduled',
+      'TO SCHEDULE': 'To Schedule',
+      'DONE': 'Done'
+    };
+    
+    return statusMap[status] || status;
+  };
+
   // Populate form when record changes
   useEffect(() => {
     if (record) {
+      console.log('Editing record data:', record);
+      console.log('Record status:', record.cor_status || record.status);
+      console.log('Record date:', record.cor_date || record.date);
+      console.log('Record time:', record.cor_time || record.time);
+      
       setFormData(prev => ({
         ...prev,
-        studentId: record.id || record.mr_student_id || record.studentId || '',
-        studentName: record.name || record.mr_student_name || record.studentName || '',
-        strand: record.strand || record.mr_student_strand || '',
-        gradeLevel: record.gradeLevel || record.mr_grade_level || '',
-        section: record.section || record.mr_section || '',
+        studentId: record.id || record.cor_student_id_number || record.studentId || '',
+        studentName: record.name || record.cor_student_name || record.studentName || '',
+        strand: record.strand || record.cor_student_strand || '',
+        gradeLevel: record.gradeLevel || record.cor_student_grade_level || '',
+        section: record.section || record.cor_student_section || '',
         
-        // Use specific status fields for each record type
-        status: record.cr_status || record.mr_status || record.status || '',
+        // FIXED: Use normalized status for form
+        status: normalizeStatus(record.cor_status || record.status || ''),
         
         // OPD fields
         violationLevel: record.violationLevel || record.cr_violation_level || '',
@@ -75,12 +123,12 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
         generalDescription: record.description || record.cr_description || '',
         additionalRemarks: record.remarks || record.mr_additional_remarks || record.cr_remarks || '',
         
-        // GCO fields
-        sessionNumber: record.sessionNumber || record.cr_session_number || '',
-        date: record.date || record.cr_date || '',
-        time: record.time || record.cr_time || '',
-        generalConcern: record.concern || record.cr_concern || '',
-        psychologicalCondition: record.psychologicalCondition || record.cr_psychological_condition || 'NO',
+        // GCO fields - FIXED: Use proper formatting
+        sessionNumber: record.sessionNumber || record.cor_session_number || '',
+        date: formatDateForInput(record.cor_date || record.date || ''),
+        time: formatTimeForInput(record.cor_time || record.time || ''),
+        generalConcern: record.concern || record.cor_general_concern || '',
+        psychologicalCondition: record.psychologicalCondition || record.cor_is_psychological_condition || 'NO',
         
         // INF fields
         subject: record.subject || record.mr_subject || '',
@@ -330,12 +378,18 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       });
 
       const recordId = record.recordId || record.cor_record_id;
+      console.log('Updating record ID:', recordId);
+      console.log('Form data status:', formData.status);
+      console.log('Form data date:', formData.date);
+      console.log('Form data time:', formData.time);
+      
       const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/counseling-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend
       });
 
       const result = await response.json();
+      console.log('Update response:', result);
 
       if (result.success) {
         // Prepare updated attachments for UI
