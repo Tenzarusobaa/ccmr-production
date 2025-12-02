@@ -46,6 +46,37 @@ const GCOForm = ({
     }
   };
 
+  // Enhanced onInputChange handler to reset date/time when status changes to "To Schedule"
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    // If status is changing to "To Schedule", reset date and time
+    if (name === 'status' && value === 'To Schedule') {
+      onInputChange(e); // First update the status
+      
+      // Create synthetic events to clear date and time
+      setTimeout(() => {
+        const dateEvent = {
+          target: {
+            name: 'date',
+            value: ''
+          }
+        };
+        const timeEvent = {
+          target: {
+            name: 'time',
+            value: ''
+          }
+        };
+        
+        onInputChange(dateEvent);
+        onInputChange(timeEvent);
+      }, 0);
+    } else {
+      onInputChange(e);
+    }
+  };
+
   const removeFile = (index) => {
     const newFiles = [...selectedFiles];
     newFiles.splice(index, 1);
@@ -91,7 +122,7 @@ const GCOForm = ({
                 id="name" 
                 name="studentName"
                 value={formData.studentName} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 disabled 
               />
             </div>
@@ -104,7 +135,7 @@ const GCOForm = ({
                 id="strand" 
                 name="strand"
                 value={formData.strand} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 disabled 
               />
             </div>
@@ -115,7 +146,7 @@ const GCOForm = ({
                 id="gradeLevel" 
                 name="gradeLevel"
                 value={formData.gradeLevel} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 disabled 
               />
             </div>
@@ -126,7 +157,7 @@ const GCOForm = ({
                 id="section" 
                 name="section"
                 value={formData.section} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 disabled 
               />
             </div>
@@ -143,7 +174,7 @@ const GCOForm = ({
                 id="sessionNumber" 
                 name="sessionNumber"
                 value={formData.sessionNumber} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 placeholder="e.g., Session 1"
                 required
               />
@@ -154,7 +185,7 @@ const GCOForm = ({
                 id="status" 
                 name="status"
                 value={formData.status} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 required
               >
                 <option value="">-</option>
@@ -172,7 +203,7 @@ const GCOForm = ({
                 id="date" 
                 name="date"
                 value={formData.date} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 required
               />
             </div>
@@ -183,7 +214,7 @@ const GCOForm = ({
                 id="time" 
                 name="time"
                 value={formData.time} 
-                onChange={onInputChange}
+                onChange={handleInputChange}
                 required
               />
             </div>
@@ -194,7 +225,7 @@ const GCOForm = ({
               id="psychologicalCondition" 
               name="psychologicalCondition"
               value={formData.psychologicalCondition} 
-              onChange={onInputChange}
+              onChange={handleInputChange}
               required
             >
               <option value="NO">No</option>
@@ -212,7 +243,7 @@ const GCOForm = ({
             id="generalConcern" 
             name="generalConcern"
             value={formData.generalConcern} 
-            onChange={onInputChange}
+            onChange={handleInputChange}
             rows="4"
             placeholder="Enter detailed description of the concern..."
             required
@@ -224,7 +255,7 @@ const GCOForm = ({
             id="additionalRemarks" 
             name="additionalRemarks"
             value={formData.additionalRemarks} 
-            onChange={onInputChange}
+            onChange={handleInputChange}
             rows="2"
             placeholder="Enter any additional remarks..."
           ></textarea>
