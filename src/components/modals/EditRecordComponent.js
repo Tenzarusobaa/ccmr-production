@@ -58,43 +58,43 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   // Helper function to format date for input field
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
-    
+
     // Handle different date formats
     if (dateString === '0000-00-00' || dateString === '0000-00-00 00:00:00') return '';
-    
+
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return '';
-    
+
     return date.toISOString().split('T')[0]; // YYYY-MM-DD format
   };
 
   // Helper function to format time for input field
   const formatTimeForInput = (timeString) => {
     if (!timeString) return '';
-    
+
     // Handle different time formats
     if (timeString === '00:00:00.000000' || timeString === '00:00:00') return '';
-    
+
     // Extract just the time part (HH:MM)
     const timeParts = timeString.split(':');
     if (timeParts.length >= 2) {
       return `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
     }
-    
+
     return timeString;
   };
 
   // Helper function to normalize status value
   const normalizeStatus = (status) => {
     if (!status) return '';
-    
+
     // Convert database status to form status
     const statusMap = {
       'SCHEDULED': 'Scheduled',
       'TO SCHEDULE': 'To Schedule',
       'DONE': 'Done'
     };
-    
+
     return statusMap[status] || status;
   };
 
@@ -105,7 +105,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       console.log('Record status:', record.cor_status || record.status);
       console.log('Record date:', record.cor_date || record.date);
       console.log('Record time:', record.cor_time || record.time);
-      
+
       setFormData(prev => ({
         ...prev,
         studentId: record.id || record.cor_student_id_number || record.studentId || '',
@@ -113,23 +113,23 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
         strand: record.strand || record.cor_student_strand || '',
         gradeLevel: record.gradeLevel || record.cor_student_grade_level || '',
         section: record.section || record.cor_student_section || '',
-        
+
         // FIXED: Use normalized status for form
         status: normalizeStatus(record.cor_status || record.status || ''),
-        
+
         // OPD fields
         violationLevel: record.violationLevel || record.cr_violation_level || '',
         referToGCO: record.referred || record.mr_referred || record.referredToGCO || '',
         generalDescription: record.description || record.cr_description || '',
         additionalRemarks: record.remarks || record.mr_additional_remarks || record.cr_remarks || '',
-        
+
         // GCO fields - FIXED: Use proper formatting
         sessionNumber: record.sessionNumber || record.cor_session_number || '',
         date: formatDateForInput(record.cor_date || record.date || ''),
         time: formatTimeForInput(record.cor_time || record.time || ''),
         generalConcern: record.concern || record.cor_general_concern || '',
         psychologicalCondition: record.psychologicalCondition || record.cor_is_psychological_condition || 'NO',
-        
+
         // INF fields
         subject: record.subject || record.mr_subject || '',
         medicalDetails: record.medicalDetails || record.mr_medical_details || '',
@@ -253,7 +253,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Append all form data
       formDataToSend.append('studentId', formData.studentId);
       formDataToSend.append('studentName', formData.studentName);
@@ -267,7 +267,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('referredToGCO', formData.referToGCO);
 
       // Append existing files that are not marked for deletion
-      const remainingExistingFiles = existingFiles.filter(file => 
+      const remainingExistingFiles = existingFiles.filter(file =>
         !filesToDelete.includes(file.filename)
       );
       formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
@@ -337,7 +337,13 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       return;
     }
 
-    if (!formData.sessionNumber || !formData.status || !formData.date || !formData.time || !formData.generalConcern) {
+    if (!formData.sessionNumber || !formData.status || !formData.generalConcern) {
+      alert('Please fill in all required schedule details');
+      return;
+    }
+
+    // Only validate date and time if status is NOT "To Schedule"
+    if (formData.status !== 'To Schedule' && (!formData.date || !formData.time)) {
       alert('Please fill in all required schedule details');
       return;
     }
@@ -346,7 +352,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Append all form data
       formDataToSend.append('studentId', formData.studentId);
       formDataToSend.append('studentName', formData.studentName);
@@ -362,7 +368,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('psychologicalCondition', formData.psychologicalCondition);
 
       // Append existing files that are not marked for deletion
-      const remainingExistingFiles = existingFiles.filter(file => 
+      const remainingExistingFiles = existingFiles.filter(file =>
         !filesToDelete.includes(file.filename)
       );
       formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
@@ -382,7 +388,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       console.log('Form data status:', formData.status);
       console.log('Form data date:', formData.date);
       console.log('Form data time:', formData.time);
-      
+
       const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/counseling-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend
@@ -465,7 +471,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Append all form data - FIXED: Added missing status field
       formDataToSend.append('studentId', formData.studentId);
       formDataToSend.append('studentName', formData.studentName);
@@ -481,7 +487,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('isMedical', formData.isMedical);
 
       // Append existing files that are not marked for deletion
-      const remainingExistingFiles = existingFiles.filter(file => 
+      const remainingExistingFiles = existingFiles.filter(file =>
         !filesToDelete.includes(file.filename)
       );
       formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
@@ -625,17 +631,17 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
     if (userType === "OPD") {
       return recordType === "OPD" || recordType === "INF";
     }
-    
+
     // GCO users can edit GCO records AND OPD records (referred cases)
     if (userType === "GCO") {
       return recordType === "GCO" || recordType === "OPD";
     }
-    
+
     // INF users can only edit INF records
     if (userType === "INF") {
       return recordType === "INF";
     }
-    
+
     return false;
   };
 

@@ -212,7 +212,13 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       return;
     }
 
-    if (!formData.sessionNumber || !formData.status || !formData.date || !formData.time || !formData.generalConcern) {
+    if (!formData.sessionNumber || !formData.status || !formData.generalConcern) {
+      alert('Please fill in all required schedule details');
+      return;
+    }
+
+    // Only validate date and time if status is NOT "To Schedule"
+    if (formData.status !== 'To Schedule' && (!formData.date || !formData.time)) {
       alert('Please fill in all required schedule details');
       return;
     }
