@@ -112,7 +112,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout }) =
                         <FontAwesomeIcon 
                             icon={faBell} 
                             className="notification-icon" 
-                            onClick={handleNotificationsClick}
+                            // onClick={handleNotificationsClick}
                             style={{ cursor: 'pointer' }}
                             title="View notifications"
                         />
