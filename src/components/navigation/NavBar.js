@@ -106,7 +106,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout }) => {
                         <FontAwesomeIcon 
                             icon={faBell} 
                             className="navbar-notification-icon" 
-                            // onClick={handleNotificationsClick}
+                            u
                             style={{ cursor: 'pointer' }}
                             title="View notifications"
                         />
