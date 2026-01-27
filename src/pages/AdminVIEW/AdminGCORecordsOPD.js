@@ -1,48 +1,35 @@
-// src/pages/GCORecords.js
+// src/pages/AdminVIEW/AdminGCORecordsOPD.js
 import React, { useState, useEffect, useMemo } from 'react';
-import NavBar from '../components/navigation/NavBar';
-import Breadcrumbs from '../components/navigation/Breadcrumbs';
-import SearchBar from '../components/search/SearchBar';
-import AddButton from '../components/buttons/AddButton';
-import DataTable from '../components/tables/DataTable';
-import AddRecordComponent from '../components/modals/AddRecordComponent';
-import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
-import { FaFolder, FaShieldAlt, FaUser, FaComments } from 'react-icons/fa';
-import './OfficeRecords.css';
+import NavBar from '../../components/navigation/NavBar';
+import Breadcrumbs from '../../components/navigation/Breadcrumbs';
+import SearchBar from '../../components/search/SearchBar';
+import DataTable from '../../components/tables/DataTable';
+import ViewStudentRecordsComponent from '../../components/modals/ViewStudentRecordsComponent';
+import { FaFolder, FaShieldAlt, FaUser } from 'react-icons/fa';
+import '../OfficeRecords.css';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
-const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+const AdminGCORecordsOPD = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const name = userData?.name || localStorage.getItem('userName') || 'User';
-  const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
-  const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
-  const viewType = userData?.viewType || type;
+  const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
+  const type = userData?.type || localStorage.getItem('type') || 'Administrator';
+  
+  // Force viewType to be OPD for this admin view (OPD viewing GCO records)
+  const viewType = "Administrator";
 
   const [records, setRecords] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getOfficeClass = () => {
-    switch (viewType) {
-      case "OPD": return "office-records-opd";
-      case "GCO": return "office-records-gco";
-      case "INF": return "office-records-inf";
-      default: return "office-records-default";
-    }
-  };
-
-  const getTitle = () => {
-    if (viewType === "GCO") return "Counseling Records";
-    if (viewType === "INF") return "Psychological Records";
-    return "Counseling Records";
-  };
+  const getOfficeClass = () => "office-records-default";
+  const getTitle = () => "Psychological Records (Admin View)";
 
   // Student columns for search results (aggregated view)
   const studentColumns = [
@@ -106,19 +93,17 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     { key: 'time', label: 'Time', sortable: true }
   ];
 
-  // Sort records based on sortConfig - FIXED: Only sort when we're in default mode
+  // Sort records based on sortConfig
   const sortedRecords = useMemo(() => {
     if (!isSearchMode && sortConfig.key && records.length > 0) {
       return [...records].sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
 
-        // Handle null/undefined values
         if (aValue == null && bValue == null) return 0;
         if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
         if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
-        // Handle dates
         if (sortConfig.key === 'date') {
           const dateA = new Date(a.date || '1970-01-01');
           const dateB = new Date(b.date || '1970-01-01');
@@ -127,7 +112,6 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             : dateB - dateA;
         }
 
-        // Handle numeric fields
         if (sortConfig.key === 'sessionNumber' || sortConfig.key === 'gradeLevel') {
           const aNum = parseInt(aValue, 10);
           const bNum = parseInt(bValue, 10);
@@ -140,14 +124,12 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             : bNum - aNum;
         }
 
-        // Handle strings
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           return sortConfig.direction === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         }
 
-        // Default comparison
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -156,7 +138,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     return records;
   }, [records, sortConfig, isSearchMode]);
 
-  // Sort students based on sortConfig - FIXED: Only sort when we're in search mode
+  // Sort students based on sortConfig
   const sortedStudents = useMemo(() => {
     if (isSearchMode && sortConfig.key && students.length > 0) {
       return [...students].sort((a, b) => {
@@ -191,27 +173,19 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     return students;
   }, [students, sortConfig, isSearchMode]);
 
-  // Handle sorting - FIXED: Reset data when switching modes
   const handleSort = (sortConfig) => {
     setSortConfig(sortConfig);
   };
 
-  // Fetch all counseling records (default view) - UPDATED for INF view
+  // Fetch all counseling records for OPD view (uses standard endpoint)
   const fetchAllRecords = async () => {
     try {
       setLoading(true);
       setError(null);
       setIsSearchMode(false);
-      setStudents([]); // Clear students when switching to default mode
+      setStudents([]);
 
-      let endpoint;
-      if (viewType === "INF") {
-        // INF should only see psychological counseling records
-        endpoint = `${API_BASE_URL}api/infirmary/counseling-records`;
-      } else {
-        // GCO sees all counseling records
-        endpoint = `${API_BASE_URL}api/counseling-records`;
-      }
+      const endpoint = `${API_BASE_URL}api/counseling-records`;
 
       const response = await fetch(endpoint);
 
@@ -234,22 +208,15 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Fetch students with counseling records (search mode) - UPDATED for INF view
+  // Fetch students with counseling records
   const fetchStudents = async () => {
     try {
       setLoading(true);
       setError(null);
       setIsSearchMode(true);
-      setRecords([]); // Clear records when switching to search mode
+      setRecords([]);
 
-      let endpoint;
-      if (viewType === "INF") {
-        // INF should only see psychological counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records/psychological`;
-      } else {
-        // GCO sees all counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records`;
-      }
+      const endpoint = `${API_BASE_URL}api/student-counseling-records`;
 
       const response = await fetch(endpoint);
 
@@ -272,12 +239,11 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Handle search - UPDATED for INF view
+  // Handle search
   const handleSearch = async (query) => {
     setSearchQuery(query);
 
     if (!query.trim()) {
-      // If search is cleared, show default records view
       fetchAllRecords();
       return;
     }
@@ -286,20 +252,10 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setLoading(true);
       setError(null);
       setIsSearchMode(true);
-      setRecords([]); // Clear records for search mode
-      setStudents([]); // Clear students initially
+      setRecords([]);
+      setStudents([]);
 
-      // Use different search endpoint based on viewType
-      let endpoint;
-      if (viewType === "INF") {
-        // INF should only search psychological counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records/psychological/search?query=${encodeURIComponent(query)}`;
-      } else {
-        // GCO searches all counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records/search?query=${encodeURIComponent(query)}`;
-      }
-
-      console.log('Searching with viewType:', viewType, 'Endpoint:', endpoint);
+      const endpoint = `${API_BASE_URL}api/counseling-records/search?query=${encodeURIComponent(query)}`;
 
       const response = await fetch(endpoint);
 
@@ -310,20 +266,18 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       const data = await response.json();
 
       if (data.success) {
-        // This should return aggregated student data like OPDRecords
-        setStudents(data.students || []);
+        setRecords(data.records || []);
       } else {
         throw new Error(data.error || 'Search failed');
       }
     } catch (err) {
-      console.error('Error searching students:', err);
+      console.error('Error searching records:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Refresh data
   const refreshData = () => {
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
@@ -334,16 +288,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   useEffect(() => {
     fetchAllRecords();
-  }, [viewType]);
-
-  const handleAddRecord = () => {
-    setShowAddModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowAddModal(false);
-    refreshData();
-  };
+  }, []);
 
   const handleCloseStudentModal = () => {
     setShowStudentModal(false);
@@ -351,20 +296,12 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     refreshData();
   };
 
-  const handleRecordAdded = () => {
-    setShowAddModal(false);
-    refreshData();
-  };
-
   const handleRowClick = (recordOrStudent) => {
     if (isSearchMode) {
-      // In search mode with aggregated students view
       if (recordOrStudent.counselingCount !== undefined) {
-        // This is a student object from aggregated view
         setSelectedStudent(recordOrStudent);
         setShowStudentModal(true);
       } else {
-        // This is a record object from search results
         setSelectedStudent({
           id: recordOrStudent.id,
           name: recordOrStudent.name,
@@ -375,7 +312,6 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         setShowStudentModal(true);
       }
     } else {
-      // In default mode, we have individual record objects
       setSelectedStudent({
         id: recordOrStudent.id,
         name: recordOrStudent.name,
@@ -387,116 +323,17 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Determine which data to display based on mode
   const displayData = useMemo(() => {
     if (isSearchMode) {
-      // In search mode, we show aggregated students
-      return { data: sortedStudents, columns: studentColumns, type: 'students' };
+      if (students.length > 0) {
+        return { data: sortedStudents, columns: studentColumns, type: 'students' };
+      } else {
+        return { data: sortedRecords, columns: recordColumns, type: 'records' };
+      }
     } else {
-      // In default mode, always show records
       return { data: sortedRecords, columns: recordColumns, type: 'records' };
     }
-  }, [isSearchMode, sortedStudents, sortedRecords]);
-
-  // Render loading state
-  if (loading) {
-    return (
-      <div className={`office-records-container ${getOfficeClass()}`}>
-        <NavBar
-          userDepartment={department}
-          userType={type}
-          userName={name}
-          onLogout={onLogout}
-          onNavItemClick={onNavItemClick}
-        />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="office-records-header">
-          <div className="header-flex">
-            <div className="header-left">
-              <Breadcrumbs />
-            </div>
-          </div>
-          <hr />
-          <div className="header-flex">
-            <div className="header-left">
-              <h2><FaFolder /> {getTitle()}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="content">
-          <div className="loading-state">Loading records...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <div className={`office-records-container ${getOfficeClass()}`}>
-        <NavBar
-          userDepartment={department}
-          userType={type}
-          userName={name}
-          onLogout={onLogout}
-          onNavItemClick={onNavItemClick}
-        />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="office-records-header">
-          <div className="header-flex">
-            <div className="header-left">
-              <Breadcrumbs />
-            </div>
-          </div>
-          <hr />
-          <div className="header-flex">
-            <div className="header-left">
-              <h2><FaFolder /> {getTitle()}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="content">
-          <div className="error-state">
-            Error loading records: {error}
-            <button onClick={refreshData} className="retry-button">
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  }, [isSearchMode, students, sortedStudents, sortedRecords]);
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
       <NavBar
@@ -504,27 +341,8 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         userType={type}
         userName={name}
         onLogout={onLogout}
-        onNavItemClick={onNavItemClick}
         onExitViewAs={onExitViewAs}
       />
-
-      {/* View As Banner for Administrator */}
-      {type === "Administrator" && viewType !== "Administrator" && (
-        <div className="view-as-banner">
-          <div className="view-as-content">
-            <span className="view-as-text">
-              You are viewing as: <strong>{viewType}</strong>
-            </span>
-            <button
-              onClick={onExitViewAs}
-              className="exit-view-as-btn"
-            >
-              Exit View As
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="office-records-header">
         <div className="header-flex">
           <div className="header-left">
@@ -537,9 +355,9 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             <h2><FaFolder /> {getTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-            {viewType === "GCO" && type === "GCO" && (
-              <AddButton onClick={handleAddRecord} type={viewType} />
-            )}
+            <div className="admin-view-indicator" style={{ marginRight: '15px' }}>
+              <span className="admin-badge">Read-Only Mode</span>
+            </div>
             <SearchBar onSearch={handleSearch} placeholder="Search by ID, Name, or Strand" />
           </div>
         </div>
@@ -549,8 +367,8 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         {displayData.data.length === 0 ? (
           <div className="empty-state">
             {isSearchMode && searchQuery
-              ? "No students found matching your search."
-              : "No records found. Create a new record to get started."}
+              ? "No psychological records found matching your search."
+              : "No psychological records found."}
           </div>
         ) : (
           <DataTable
@@ -564,19 +382,13 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         )}
       </div>
 
-      <AddRecordComponent
-        isOpen={showAddModal}
-        onClose={handleCloseModal}
-        onRecordAdded={handleRecordAdded}
-        type={viewType}
-      />
-
       <ViewStudentRecordsComponent
         isOpen={showStudentModal}
         onClose={handleCloseStudentModal}
         student={selectedStudent}
         type={viewType}
         recordType="counseling"
+        isAdminView={true}
       />
 
       <div className="footer">
@@ -589,4 +401,4 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   );
 };
 
-export default GCORecords;
+export default AdminGCORecordsOPD;

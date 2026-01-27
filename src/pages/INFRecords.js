@@ -2,37 +2,37 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import NavBar from '../components/navigation/NavBar';
 import Breadcrumbs from '../components/navigation/Breadcrumbs';
-import Metrics from '../components/metrics/Metrics';
 import SearchBar from '../components/search/SearchBar';
 import AddButton from '../components/buttons/AddButton';
-import FilterMedical from '../components/buttons/FilterMedical'; // NEW IMPORT
+import FilterMedical from '../components/buttons/FilterMedical';
 import DataTable from '../components/tables/DataTable';
 import AddRecordComponent from '../components/modals/AddRecordComponent';
-import ViewRecordComponent from '../components/modals/ViewRecordComponent';
-import EditRecordComponent from '../components/modals/EditRecordComponent';
-import { FaFolder, FaShieldAlt } from 'react-icons/fa';
+import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
+import { FaFolder, FaShieldAlt, FaUser, FaFileMedical, FaStethoscope } from 'react-icons/fa';
 import './OfficeRecords.css';
-import DemoOverlay from './DemoOverlay';
 
-const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
+const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
+
+const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const name = userData?.name || localStorage.getItem('userName') || 'User';
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
   const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
+  const viewType = userData?.viewType || type;
 
   const [records, setRecords] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showStudentModal, setShowStudentModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  
-  // Simplified filter states: All, Medical, Psychological
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentFilter, setCurrentFilter] = useState('ALL');
 
   const getOfficeClass = () => {
-    switch (type) {
+    switch (viewType) {
       case "OPD": return "office-records-opd";
       case "GCO": return "office-records-gco";
       case "INF": return "office-records-inf";
@@ -41,42 +41,106 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
   };
 
   const getTitle = () => {
-    if (type === "OPD") return "Medical and Psychological Records";
-    if (type === "GCO") return "Referred Medical and Psychological Records";
-    if (type === "INF") return "Medical and Psychological Records";
-    return "Case Records";
+    if (viewType === "INF") return "Medical Records";
+    if (viewType === "GCO") return "Referred Medical Records";
+    return "Medical Records";
   };
 
-  // Get filter title based on current state
   const getFilterTitle = () => {
-    switch (currentFilter) {
-      case 'ALL': return "All Records";
-      case 'MEDICALPSYCHOLOGICAL': return "Medical and Psychological Records";
-      case 'MEDICAL': return "Medical Records";
-      case 'PSYCHOLOGICAL': return "Psychological Records";
-      default: return "Medical Records";
+    if (viewType === "GCO") {
+      // GCO should only see referred records
+      switch (currentFilter) {
+        case 'ALL': return "All Referred Records";
+        case 'MEDICALPSYCHOLOGICAL': return "Referred Medical & Psychological Records (Both)";
+        case 'MEDICAL': return "Referred Medical Records Only";
+        case 'PSYCHOLOGICAL': return "Referred Psychological Records Only";
+        default: return "Referred Medical Records";
+      }
+    } else {
+      // INF sees all records
+      switch (currentFilter) {
+        case 'ALL': return "All Records";
+        case 'MEDICALPSYCHOLOGICAL': return "Medical & Psychological Records (Both)";
+        case 'MEDICAL': return "Medical Records Only";
+        case 'PSYCHOLOGICAL': return "Psychological Records Only";
+        default: return "Medical Records";
+      }
     }
   };
 
-  // Table columns configuration
-  const medicalColumns = [
+  // Student columns for search results (aggregated view)
+  const studentColumns = [
+    { 
+      key: 'id', 
+      label: 'ID No.', 
+      sortable: true,
+      render: (value, row) => (
+        <div className="student-id-cell">
+          <FaUser className="student-icon" />
+          <span>{value}</span>
+        </div>
+      )
+    },
+    { key: 'name', label: 'Student Name', sortable: true },
+    { key: 'strand', label: 'Strand', sortable: true },
+    { key: 'gradeLevel', label: 'Grade Level', sortable: true },
+    { key: 'section', label: 'Section', sortable: true },
+    { 
+      key: 'medicalCount', 
+      label: 'Record Count', 
+      sortable: true,
+      render: (value) => (
+        <span className={`medical-count-badge ${value > 0 ? 'has-records' : 'no-records'}`}>
+          <FaFileMedical style={{ marginRight: '5px' }} />
+          {value} record{value !== 1 ? 's' : ''}
+        </span>
+      )
+    },
+    { 
+      key: 'recordTypes', 
+      label: 'Record Types', 
+      sortable: false,
+      render: (_, row) => {
+        const types = [];
+        if (row.hasMedical && row.hasMedical.includes('Yes')) types.push('Medical');
+        if (row.hasPsychological && row.hasPsychological.includes('Yes')) types.push('Psychological');
+        
+        return (
+          <div className="record-types">
+            {types.map(type => (
+              <span key={type} className={`type-badge type-${type.toLowerCase()}`}>
+                {type}
+              </span>
+            ))}
+          </div>
+        );
+      }
+    },
+    { 
+      key: 'latestStatus', 
+      label: 'Latest Status', 
+      sortable: true,
+      render: (value) => (
+        <span className={`status-badge status-${value?.toLowerCase() || 'unknown'}`}>
+          {value || 'No Status'}
+        </span>
+      )
+    }
+  ];
+
+  // Record columns for default view (individual records)
+  const recordColumns = [
     { key: 'recordId', label: 'Record No.', sortable: true },
     { key: 'id', label: 'ID No.', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'strand', label: 'Strand', sortable: true },
-    {
-      key: 'attachments',
-      label: 'Files',
-      sortable: true,
-      render: (attachments) => (
-        <span>
-          {attachments && attachments.length > 0 ? `${attachments.length} file(s)` : 'No files'}
-        </span>
-      )
-    },
-    {
-      key: 'status',
-      label: 'Status',
+    { key: 'gradeLevel', label: 'Grade Level', sortable: true },
+    { key: 'section', label: 'Section', sortable: true },
+    { key: 'schoolYearSemester', label: 'School Year & Semester', sortable: true },
+    { key: 'subject', label: 'Subject', sortable: true },
+    { 
+      key: 'status', 
+      label: 'Status', 
       sortable: true,
       render: (value) => (
         <span className={`status-badge status-${value?.toLowerCase() || 'unknown'}`}>
@@ -84,32 +148,25 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
         </span>
       )
     },
+    { 
+      key: 'type', 
+      label: 'Type', 
+      sortable: true,
+      render: (_, row) => {
+        const types = [];
+        if (row.isMedical === 'Yes') types.push('Medical');
+        if (row.isPsychological === 'Yes') types.push('Psychological');
+        return types.join(', ') || 'None';
+      }
+    },
     { key: 'date', label: 'Date', sortable: true }
   ];
 
-  // Filter records based on current filter state
-  const filteredRecords = useMemo(() => {
-    if (currentFilter === 'ALL') return records;
-
-    return records.filter((record) => {
-      if (currentFilter === 'MEDICALPSYCHOLOGICAL') {
-        return record.isMedical === "Yes" && record.isPsychological === "Yes";
-      }
-      if (currentFilter === 'MEDICAL') {
-        return record.isMedical === "Yes" && record.isPsychological === "No";
-      }
-      if (currentFilter === 'PSYCHOLOGICAL') {
-        return record.isPsychological === "Yes" && record.isMedical === "No";
-      }
-      return true;
-    });
-  }, [records, currentFilter]);
-
   // Sort records based on sortConfig
   const sortedRecords = useMemo(() => {
-    if (!sortConfig.key) return filteredRecords;
+    if (!sortConfig.key) return records;
 
-    return [...filteredRecords].sort((a, b) => {
+    return [...records].sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
@@ -118,54 +175,120 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
       if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
       if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
-      // Handle different data types
+      // Handle dates
+      if (sortConfig.key === 'date') {
+        const dateA = new Date(a.date || '1970-01-01');
+        const dateB = new Date(b.date || '1970-01-01');
+        return sortConfig.direction === 'asc'
+          ? dateA - dateB
+          : dateB - dateA;
+      }
+
+      // Handle numeric fields
+      if (sortConfig.key === 'recordId' || sortConfig.key === 'gradeLevel') {
+        const aNum = parseInt(aValue, 10);
+        const bNum = parseInt(bValue, 10);
+        if (isNaN(aNum) && isNaN(bNum)) return 0;
+        if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
+
+        return sortConfig.direction === 'asc'
+          ? aNum - bNum
+          : bNum - aNum;
+      }
+
+      // Handle strings
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortConfig.direction === 'asc' 
+        return sortConfig.direction === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
 
-      // For numbers and dates
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
+      // Default comparison
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredRecords, sortConfig]);
+  }, [records, sortConfig]);
 
-  // Cycle through filter states
+  // Sort students based on sortConfig
+  const sortedStudents = useMemo(() => {
+    if (!sortConfig.key) return students;
+
+    return [...students].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+
+      if (sortConfig.key === 'medicalCount' || sortConfig.key === 'gradeLevel') {
+        const aNum = parseInt(aValue, 10);
+        const bNum = parseInt(bValue, 10);
+        if (isNaN(aNum) && isNaN(bNum)) return 0;
+        if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
+        
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [students, sortConfig]);
+
   const cycleFilter = () => {
     const filters = ['ALL', 'MEDICALPSYCHOLOGICAL', 'MEDICAL', 'PSYCHOLOGICAL'];
     const currentIndex = filters.indexOf(currentFilter);
     const nextIndex = (currentIndex + 1) % filters.length;
-    setCurrentFilter(filters[nextIndex]);
+    const newFilter = filters[nextIndex];
+    
+    setCurrentFilter(newFilter);
+    
+    // If we're in search mode with a query, refresh search with new filter
+    if (isSearchMode && searchQuery) {
+      handleSearch(searchQuery);
+    } else if (isSearchMode) {
+      // If we're in search mode but no query, fetch students with new filter
+      fetchStudents();
+    } else {
+      // In default mode, fetch all records with filter applied
+      fetchAllRecords();
+    }
   };
 
-  // Handle sorting
   const handleSort = (sortConfig) => {
     setSortConfig(sortConfig);
   };
 
-  // Fetch records based on user type
-  const fetchRecords = async () => {
+  // Fetch all medical records (default view) - UPDATED for GCO view
+  const fetchAllRecords = async () => {
     try {
       setLoading(true);
       setError(null);
-
+      setIsSearchMode(false);
+      
       let endpoint;
-      if (type === "GCO") {
-        // GCO sees only referred records
-        endpoint = "https://ccmr-final-node-production.up.railway.app/api/medical-records/referred";
+      if (viewType === "GCO") {
+        // GCO should only see referred medical records
+        endpoint = `${API_BASE_URL}api/medical-records/referred?filter=${currentFilter}`;
       } else {
-        // INF and OPD see all medical records - FIXED ENDPOINT
-        endpoint = "https://ccmr-final-node-production.up.railway.app/api/infirmary/medical-records";
+        // INF sees all medical records
+        endpoint = `${API_BASE_URL}api/infirmary/medical-records?filter=${currentFilter}`;
       }
 
+      console.log('Fetching records with viewType:', viewType, 'filter:', currentFilter, 'Endpoint:', endpoint);
+      
       const response = await fetch(endpoint);
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -174,36 +297,84 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
 
       if (data.success) {
         setRecords(data.records || []);
+        setStudents([]);
       } else {
         throw new Error(data.error || 'Failed to fetch records');
       }
     } catch (err) {
-      console.error('Error fetching medical records:', err);
+      console.error('Error fetching records:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle search functionality
-  const handleSearch = async (searchQuery) => {
-    if (!searchQuery.trim()) {
-      fetchRecords(); // Reset to all records if search is empty
+  // Fetch students with medical records (search mode) - UPDATED for GCO view
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setIsSearchMode(true);
+
+      let endpoint;
+      if (viewType === "GCO") {
+        // GCO should only see referred medical records
+        endpoint = `${API_BASE_URL}api/student-medical-records/referred?filter=${currentFilter}`;
+      } else {
+        // INF sees all medical records
+        endpoint = `${API_BASE_URL}api/student-medical-records?filter=${currentFilter}`;
+      }
+
+      console.log('Fetching students with viewType:', viewType, 'filter:', currentFilter, 'Endpoint:', endpoint);
+      
+      const response = await fetch(endpoint);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStudents(data.students || []);
+        setRecords([]);
+      } else {
+        throw new Error(data.error || 'Failed to fetch students');
+      }
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle search - UPDATED for GCO view
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      // If search is cleared, show default records view
+      fetchAllRecords();
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
+      setIsSearchMode(true);
 
+      // Use different search endpoint based on viewType
       let endpoint;
-      if (type === "GCO") {
-        // GCO searches only in referred records
-        endpoint = `https://ccmr-final-node-production.up.railway.app/api/medical-records/referred/search?query=${encodeURIComponent(searchQuery)}`;
+      if (viewType === "GCO") {
+        // GCO should only search referred medical records
+        endpoint = `${API_BASE_URL}api/student-medical-records/referred/search?query=${encodeURIComponent(query)}&filter=${currentFilter}`;
       } else {
-        // INF and OPD search in all records - FIXED ENDPOINT
-        endpoint = `https://ccmr-final-node-production.up.railway.app/api/medical-records/search?query=${encodeURIComponent(searchQuery)}`;
+        // INF searches all medical records
+        endpoint = `${API_BASE_URL}api/student-medical-records/search?query=${encodeURIComponent(query)}&filter=${currentFilter}`;
       }
+
+      console.log('Searching with viewType:', viewType, 'query:', query, 'filter:', currentFilter, 'Endpoint:', endpoint);
 
       const response = await fetch(endpoint);
 
@@ -214,26 +385,37 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
       const data = await response.json();
 
       if (data.success) {
-        setRecords(data.records || []);
+        // This should return aggregated student data
+        setStudents(data.students || []);
+        setRecords([]); // Clear individual records
       } else {
         throw new Error(data.error || 'Search failed');
       }
     } catch (err) {
-      console.error('Error searching medical records:', err);
+      console.error('Error searching medical students:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Refresh records data
-  const refreshRecords = () => {
-    fetchRecords();
+  const refreshData = () => {
+    if (isSearchMode && searchQuery) {
+      handleSearch(searchQuery);
+    } else if (isSearchMode) {
+      fetchStudents();
+    } else {
+      fetchAllRecords();
+    }
   };
 
   useEffect(() => {
-    fetchRecords();
-  }, [type]); // Refetch when user type changes
+    if (isSearchMode && !searchQuery) {
+      fetchStudents();
+    } else {
+      fetchAllRecords();
+    }
+  }, [viewType, currentFilter]);
 
   const handleAddRecord = () => {
     setShowAddModal(true);
@@ -241,211 +423,200 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
 
   const handleCloseModal = () => {
     setShowAddModal(false);
-    refreshRecords(); // Refresh data after closing add modal
+    refreshData();
   };
 
-  const handleCloseViewModal = () => {
-    setShowViewModal(false);
-    setSelectedRecord(null);
-    refreshRecords(); // Refresh data after closing view modal
+  const handleCloseStudentModal = () => {
+    setShowStudentModal(false);
+    setSelectedStudent(null);
+    refreshData();
   };
 
-  const handleRecordAdded = (newRecord) => {
-    setRecords(prevRecords => [newRecord, ...prevRecords]);
+  const handleRecordAdded = () => {
     setShowAddModal(false);
-    refreshRecords(); // Refresh data after adding record
+    refreshData();
   };
 
-  const handleRowClick = (record) => {
-    console.log('Record clicked:', record);
-    setSelectedRecord(record);
-    setShowViewModal(true);
+  const handleRowClick = (recordOrStudent) => {
+    if (isSearchMode) {
+      // In search mode, we have aggregated student objects
+      if (recordOrStudent.medicalCount !== undefined) {
+        // This is a student object from aggregated view
+        setSelectedStudent(recordOrStudent);
+        setShowStudentModal(true);
+      } else {
+        // This is a record object (shouldn't happen in search mode now)
+        setSelectedStudent({
+          id: recordOrStudent.id,
+          name: recordOrStudent.name,
+          strand: recordOrStudent.strand,
+          gradeLevel: recordOrStudent.gradeLevel,
+          section: recordOrStudent.section
+        });
+        setShowStudentModal(true);
+      }
+    } else {
+      // In default mode, we have individual record objects
+      setSelectedStudent({
+        id: recordOrStudent.id,
+        name: recordOrStudent.name,
+        strand: recordOrStudent.strand,
+        gradeLevel: recordOrStudent.gradeLevel,
+        section: recordOrStudent.section
+      });
+      setShowStudentModal(true);
+    }
   };
 
-  const handleEditRecord = (record) => {
-    setSelectedRecord(record);
-    setShowEditModal(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setSelectedRecord(null);
-    refreshRecords(); // Refresh data after closing edit modal
-  };
-
-  // FIXED: Proper record update handler with debug logging
-  const handleRecordUpdated = (updatedRecord) => {
-    console.log('=== RECORD UPDATE DEBUG ===');
-    console.log('Current records:', records);
-    console.log('Updated record:', updatedRecord);
-    
-    setRecords(prevRecords =>
-      prevRecords.map(record => {
-        // Handle all possible ID property names for comparison
-        const currentId = record.recordId || record.mr_medical_id;
-        const updatedId = updatedRecord.recordId || updatedRecord.mr_medical_id;
-        
-        console.log(`Comparing IDs: ${currentId} vs ${updatedId}`);
-        
-        if (currentId === updatedId) {
-          console.log('✅ Record matched and will be updated');
-          return updatedRecord;
-        }
-        return record;
-      })
-    );
-    setShowEditModal(false);
-    refreshRecords(); // Refresh data after updating record
-  };
-
-  // Render loading state
-  if (loading) {
-    return (
-      <div className={`office-records-container ${getOfficeClass()}`}>
-        <NavBar
-          userDepartment={department}
-          userType={type}
-          userName={name}
-          onLogout={onLogout}
-          onNavItemClick={onNavItemClick}
-        />
-        <div className="office-records-header">
-          <div className="header-flex">
-            <div className="header-left">
-              <Breadcrumbs />
-            </div>
-            <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-              {/*<Metrics />*/}
-            </div>
-          </div>
-          <hr></hr>
-          <div className="header-flex">
-            <div className="header-left">
-              <h2><FaFolder /> {getTitle()}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="content">
-          <div className="loading-state">Loading records...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <div className={`office-records-container ${getOfficeClass()}`}>
-        <NavBar
-          userDepartment={department}
-          userType={type}
-          userName={name}
-          onLogout={onLogout}
-          onNavItemClick={onNavItemClick}
-        />
-        <div className="office-records-header">
-          <div className="header-flex">
-            <div className="header-left">
-              <Breadcrumbs />
-            </div>
-            <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-              {/*<Metrics />*/}
-            </div>
-          </div>
-          <hr></hr>
-          <div className="header-flex">
-            <div className="header-left">
-              <h2><FaFolder /> {getTitle()}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="content">
-          <div className="error-state">
-            Error loading records: {error}
-            <button onClick={fetchRecords} className="retry-button">
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Only show filter button for INF users, not for GCO users
+  const showFilterButton = viewType === "INF" && (!isSearchMode || !searchQuery);
 
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
-      {/* <DemoOverlay /> */}
       <NavBar
         userDepartment={department}
         userType={type}
         userName={name}
         onLogout={onLogout}
         onNavItemClick={onNavItemClick}
+        onExitViewAs={onExitViewAs}
       />
+      
+      {/* View As Banner for Administrator */}
+      {type === "Administrator" && viewType !== "Administrator" && (
+        <div className="view-as-banner">
+          <div className="view-as-content">
+            <span className="view-as-text">
+              You are viewing as: <strong>{viewType}</strong>
+            </span>
+            <button 
+              onClick={onExitViewAs}
+              className="exit-view-as-btn"
+            >
+              Exit View As
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="office-records-header">
         <div className="header-flex">
           <div className="header-left">
             <Breadcrumbs />
           </div>
-          <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-            {/*<Metrics />*/}
-          </div>
         </div>
-        <hr></hr>
+        <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getFilterTitle()}</h2>
+            <h2><FaFolder /> {getFilterTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {type === "INF" && (
-              <AddButton onClick={handleAddRecord} type={type} />
+            {viewType === "INF" && type === "INF" && (
+              <AddButton onClick={handleAddRecord} type={viewType} />
             )}
             
-            {/* Single Filter Button */}
-            <FilterMedical 
-              type={type}
-              onClick={cycleFilter}
-              currentFilter={currentFilter}
-            />
+            {showFilterButton && (
+              <FilterMedical 
+                type={viewType}
+                onClick={cycleFilter}
+                currentFilter={currentFilter}
+              />
+            )}
 
-            <SearchBar onSearch={handleSearch} />
-            {/* <SearchBar onSearch={handleSearch} /> */}
+            <SearchBar onSearch={handleSearch} placeholder="Search by ID, Name, or Strand" />
           </div>
         </div>
       </div>
 
       <div className="content">
-        <DataTable
-          data={sortedRecords}
-          columns={medicalColumns}
-          type={type}
-          onRowClick={handleRowClick}
-          onSort={handleSort}
-          sortConfig={sortConfig}
-        />
+        {loading ? (
+          <div className="loading-state">Loading records...</div>
+        ) : error ? (
+          <div className="error-state">Error: {error}</div>
+        ) : isSearchMode ? (
+          // Search mode: Show aggregated student table
+          sortedStudents.length > 0 ? (
+            <DataTable
+              data={sortedStudents}
+              columns={studentColumns}
+              type={viewType}
+              onRowClick={handleRowClick}
+              onSort={handleSort}
+              sortConfig={sortConfig}
+            />
+          ) : (
+            <div className="empty-state">No students found matching your search.</div>
+          )
+        ) : (
+          // Default mode: Show flat table of individual records
+          <>
+            {sortedRecords.length === 0 ? (
+              <div className="empty-state">No records found. Create a new record to get started.</div>
+            ) : (
+              <div className="table-scroll-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      {recordColumns.map((column) => (
+                        <th
+                          key={column.key}
+                          onClick={() => column.sortable && handleSort({
+                            key: column.key,
+                            direction: sortConfig.key === column.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                          })}
+                          className={column.sortable ? 'sortable' : ''}
+                        >
+                          <span className="column-header-content">
+                            {column.label}
+                            {column.sortable && (
+                              <span className="sort-indicator">
+                                {sortConfig && sortConfig.key === column.key 
+                                  ? sortConfig.direction === 'asc' ? '↑' : '↓'
+                                  : '↕️'
+                                }
+                              </span>
+                            )}
+                          </span>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedRecords.map((record, index) => (
+                      <tr
+                        key={record.recordId || `row-${index}`}
+                        onClick={() => handleRowClick(record)}
+                        className="clickable-row"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {recordColumns.map((column) => (
+                          <td key={column.key}>
+                            {column.render ? column.render(record[column.key], record) : record[column.key]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <AddRecordComponent
         isOpen={showAddModal}
         onClose={handleCloseModal}
         onRecordAdded={handleRecordAdded}
-        type={type}
+        type={viewType}
       />
 
-      <ViewRecordComponent
-        isOpen={showViewModal}
-        onClose={handleCloseViewModal}
-        record={selectedRecord}
-        type={type}
-        onEdit={handleEditRecord}
-      />
-
-      <EditRecordComponent
-        isOpen={showEditModal}
-        onClose={handleCloseEditModal}
-        onRecordUpdated={handleRecordUpdated}
-        type={type}
-        record={selectedRecord}
+      <ViewStudentRecordsComponent
+        isOpen={showStudentModal}
+        onClose={handleCloseStudentModal}
+        student={selectedStudent}
+        type={viewType}
+        recordType="medical"
       />
 
       <div className="footer">

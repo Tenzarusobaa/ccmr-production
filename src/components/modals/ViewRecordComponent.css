@@ -1,4 +1,6 @@
 /* src/components/modals/ViewRecordComponent.css */
+/* Only styles specific to ViewRecordComponent */
+
 .view-record-container {
   padding: 0;
 }
@@ -6,5 +8,3 @@
 .view-modal .modal-content {
   overflow-y: auto;
 }
-
-/* Modal overlay and content styles are inherited from AddRecordComponent.css */

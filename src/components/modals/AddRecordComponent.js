@@ -14,6 +14,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
     strand: '',
     gradeLevel: '',
     section: '',
+    schoolYearSemester: '', // Added schoolYearSemester field
     // OPD fields
     violationLevel: '',
     status: '',
@@ -95,13 +96,15 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
   };
 
   const handleStudentSelect = (student) => {
+    console.log('Selected student:', student); // Debug log
     setFormData(prev => ({
       ...prev,
       studentId: student.sd_id_number,
       studentName: student.sd_student_name,
       strand: student.sd_strand,
       gradeLevel: student.sd_grade_level,
-      section: student.sd_section
+      section: student.sd_section,
+      schoolYearSemester: student.sd_school_year_semesterr || '' // FIXED: This was the issue - field name mismatch
     }));
     clearSuggestions();
   };
@@ -151,6 +154,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       formDataToSend.append('strand', formData.strand);
       formDataToSend.append('gradeLevel', formData.gradeLevel);
       formDataToSend.append('section', formData.section);
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester);
       formDataToSend.append('violationLevel', formData.violationLevel);
       formDataToSend.append('status', formData.status);
       formDataToSend.append('description', formData.generalDescription);
@@ -162,7 +166,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/case-records', {
+      const response = await fetch('http://localhost:5000/api/case-records', {
         method: 'POST',
         body: formDataToSend
       });
@@ -177,6 +181,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
           strand: formData.strand,
           gradeLevel: formData.gradeLevel,
           section: formData.section,
+          schoolYearSemester: formData.schoolYearSemester,
           violationLevel: formData.violationLevel,
           status: formData.status,
           date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
@@ -234,6 +239,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       formDataToSend.append('strand', formData.strand);
       formDataToSend.append('gradeLevel', formData.gradeLevel);
       formDataToSend.append('section', formData.section);
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester);
       formDataToSend.append('sessionNumber', formData.sessionNumber);
       formDataToSend.append('status', formData.status);
       formDataToSend.append('date', formData.date);
@@ -247,7 +253,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/counseling-records', {
+      const response = await fetch('http://localhost:5000/api/counseling-records', {
         method: 'POST',
         body: formDataToSend
       });
@@ -262,6 +268,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
           strand: formData.strand,
           gradeLevel: formData.gradeLevel,
           section: formData.section,
+          schoolYearSemester: formData.schoolYearSemester,
           sessionNumber: formData.sessionNumber,
           status: formData.status,
           date: formData.date,
@@ -329,6 +336,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       formDataToSend.append('strand', formData.strand);
       formDataToSend.append('gradeLevel', formData.gradeLevel);
       formDataToSend.append('section', formData.section);
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester);
       formDataToSend.append('subject', formData.subject);
       formDataToSend.append('status', formData.status);
       formDataToSend.append('medicalDetails', formData.medicalDetails);
@@ -353,7 +361,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         console.log('No file classifications to send');
       }
 
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/medical-records', {
+      const response = await fetch('http://localhost:5000/api/medical-records', {
         method: 'POST',
         body: formDataToSend
       });
@@ -368,6 +376,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
           strand: formData.strand,
           gradeLevel: formData.gradeLevel,
           section: formData.section,
+          schoolYearSemester: formData.schoolYearSemester,
           subject: formData.subject,
           status: formData.status,
           medicalDetails: formData.medicalDetails,
@@ -437,6 +446,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       strand: '',
       gradeLevel: '',
       section: '',
+      schoolYearSemester: '',
       violationLevel: '',
       status: '',
       referToGCO: '',

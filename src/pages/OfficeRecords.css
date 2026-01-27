@@ -140,7 +140,42 @@
   text-align: center;
   font-size: 15px;
   width: 95%;
-  color: #003A6C
+}
+
+/* OPD Footer Color */
+.office-records-opd .footer {
+  color: #003A6C;
+}
+
+.office-records-opd .footer-header {
+  color: #003A6C;
+}
+
+/* GCO Footer Color */
+.office-records-gco .footer {
+  color: #00451D;
+}
+
+.office-records-gco .footer-header {
+  color: #00451D;
+}
+
+/* INF Footer Color */
+.office-records-inf .footer {
+  color: #640C17;
+}
+
+.office-records-inf .footer-header {
+  color: #640C17;
+}
+
+/* Default Footer Color */
+.office-records-default .footer {
+  color: #0a1a3c;
+}
+
+.office-records-default .footer-header {
+  color: #0a1a3c;
 }
 
 .footer a {
@@ -173,4 +208,75 @@
 
 .retry-button:hover {
   background-color: #1565c0;
+}
+
+/* Add to OfficeRecords.css */
+
+.semester-navigation {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.semester-nav-button {
+  background: transparent;
+  border: none;
+  color: #F2F8FC;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.semester-nav-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.semester-nav-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.current-semester {
+  margin: 0 10px;
+  font-weight: bold;
+  min-width: 120px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.loading-indicator {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 5px;
+}
+
+.error-banner {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.retry-button-small {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.retry-button-small:hover {
+  background: #1565c0;
 }

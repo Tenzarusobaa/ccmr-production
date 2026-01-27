@@ -171,7 +171,13 @@ const Login = ({ onLogin }) => {
     }
     
     onLogin(user);
-    navigate('/dashboard');
+    
+    // Redirect based on user type
+    if (user.type === "Administrator") {
+      navigate('/administrator');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const getDepartmentFromType = (userType) => {

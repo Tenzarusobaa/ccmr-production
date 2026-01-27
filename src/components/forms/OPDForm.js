@@ -126,6 +126,19 @@ const OPDForm = ({
               />
             </div>
           </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="schoolYearSemester">School Year & Semester</label>
+              <input 
+                type="text" 
+                id="schoolYearSemester" 
+                name="schoolYearSemester"
+                value={formData.schoolYearSemester || ''}
+                onChange={onInputChange}
+                disabled 
+              />
+            </div>
+          </div>
         </div>
         
         <div className="form-section">
@@ -239,7 +252,6 @@ const OPDForm = ({
           </div>
         )}
 
-        {/* File upload area - only show if no file exists or in add mode 
         {(selectedFiles.length === 0 && (!isEditMode || existingFiles.length === 0)) && (
           <div 
             className="attachment-box" 
@@ -253,8 +265,8 @@ const OPDForm = ({
           </div>
         )}
 
-        */}
-        
+      
+
         {/* Selected new files */}
         {selectedFiles.length > 0 && (
           <div className="selected-files">

@@ -16,7 +16,6 @@
 .data-table td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #eee;
   vertical-align: middle;
 }
 
@@ -27,12 +26,22 @@
   top: 0;
 }
 
+.data-table th:last-child,
+.data-table td:last-child {
+  border-right: none; /* Remove right border from last column */
+}
+
 .data-table td {
   height: 25px;
 }
 
+/* Add white line between table rows */
+.data-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid #e0e0e0;
+}
+
 .data-table tbody tr:last-child td {
-  border-bottom: none;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .data-table tbody tr:hover {
@@ -140,4 +149,24 @@
   font-weight: bold;
   padding: 4px 8px;
   border-radius: 4px;
+}
+
+/* Sort indicator styles */
+.sortable {
+  cursor: pointer;
+}
+
+.sortable:hover {
+  background-color: #1a4f7a; /* Darker blue on hover */
+}
+
+.column-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sort-indicator {
+  margin-left: 8px;
+  font-size: 12px;
 }

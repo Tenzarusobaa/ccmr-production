@@ -4,7 +4,7 @@ import './DataTable.css';
 
 const DataTable = ({ data, columns, type, onRowClick, onSort, sortConfig }) => {
   if (!data || data.length === 0) {
-    return <div className="no-records">No records found.</div>;
+    return <div className="no-records">No records found. Create a new record for a student with existing cases</div>;
   }
 
   const handleSort = (columnKey) => {

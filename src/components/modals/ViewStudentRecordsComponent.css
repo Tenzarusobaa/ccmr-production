@@ -1,0 +1,303 @@
+.modal-wide {
+  max-width: 1200px;
+  width: 90%;
+  max-height: 90vh;
+}
+
+.student-info-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Use user type colors instead of record type colors */
+.student-info-section.office-opd {
+  background-color: #003A6C;
+}
+
+.student-info-section.office-gco {
+  background-color: #00451D;
+}
+
+.student-info-section.office-inf {
+  background-color: #640C17;
+}
+
+.student-info-section.office-default {
+  background-color: #0a1a3c;
+}
+
+.student-info-section h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+}
+
+.records-section {
+  padding: 16px;
+}
+
+.records-section h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.records-section h3.office-opd {
+  color: #003A6C !important;
+}
+
+.records-section h3.office-gco {
+  color: #00451D !important;
+}
+
+.records-section h3.office-inf {
+  color: #640C17 !important;
+}
+
+.records-section h3.office-default {
+  color: #0a1a3c !important;
+}
+
+.records-list {
+  display: grid;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.records-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.records-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.records-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.records-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.record-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 16px;
+  transition: box-shadow 0.2s ease;
+}
+
+.record-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.record-id {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.case .record-id {
+  color: #003A6C;
+}
+
+.counseling .record-id {
+  color: #00451D;
+}
+
+.medical .record-id {
+  color: #640C17;
+}
+
+.record-status {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-ongoing {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-resolved {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-scheduled {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.status-done {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-toschedule {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-unknown {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+}
+
+.record-body p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.record-body strong {
+  color: #333;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px dashed #ddd;
+}
+
+.error-state {
+  color: #dc3545;
+  background-color: #fdf2f2;
+  border-color: #f5c6cb;
+}
+
+.empty-state {
+  color: #6c757d;
+}
+
+.semester-section {
+  margin-bottom: 8px;
+}
+
+.semester-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-left: 4px solid;
+}
+
+/* Use user type colors for semester headers */
+.semester-header.office-opd {
+  background-color: white;
+  color: #003A6C;
+  border-left-color: #003A6C;
+}
+
+.semester-header.office-opd.expanded {
+  background-color: #003A6C;
+  color: white;
+}
+
+.semester-header.office-gco {
+  background-color: white;
+  color: #00451D;
+  border-left-color: #00451D;
+}
+
+.semester-header.office-gco.expanded {
+  background-color: #00451D;
+  color: white;
+}
+
+.semester-header.office-inf {
+  background-color: white;
+  color: #640C17;
+  border-left-color: #640C17;
+}
+
+.semester-header.office-inf.expanded {
+  background-color: #640C17;
+  color: white;
+}
+
+.semester-header.office-default {
+  background-color: white;
+  color: #0a1a3c;
+  border-left-color: #0a1a3c;
+}
+
+.semester-header.office-default.expanded {
+  background-color: #0a1a3c;
+  color: white;
+}
+
+.semester-header:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.semester-records {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 8px 0;
+}
+
+@media (max-width: 768px) {
+  .modal-wide {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .records-list {
+    max-height: 300px;
+  }
+
+  .semester-header {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .semester-records {
+    padding-left: 0; /* Removed left padding for mobile */
+  }
+}

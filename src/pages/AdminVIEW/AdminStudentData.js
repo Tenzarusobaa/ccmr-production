@@ -1,26 +1,25 @@
+// src/pages/AdminVIEW/AdminStudentData.js
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import NavBar from '../components/navigation/NavBar';
-import Breadcrumbs from '../components/navigation/Breadcrumbs';
-import AddButton from '../components/buttons/AddButton';
-import ImportButton from '../components/buttons/ImportButton';
-import SearchBar from '../components/search/SearchBar';
-import DataTable from '../components/tables/DataTable';
-import AddRecordComponent from '../components/modals/AddRecordComponent';
+import { useLocation } from 'react-router-dom';
+import NavBar from '../../components/navigation/NavBar';
+import Breadcrumbs from '../../components/navigation/Breadcrumbs';
+import SearchBar from '../../components/search/SearchBar';
+import DataTable from '../../components/tables/DataTable';
 import { FaUser, FaShieldAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import './OfficeRecords.css';
-import DemoOverlay from './DemoOverlay';
+import '../OfficeRecords.css';
 
-const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+const AdminStudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+  const location = useLocation();
   const name = userData?.name || localStorage.getItem('userName') || 'User';
-  const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
-  const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
-  const viewType = userData?.viewType || type;
+  const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
+  const type = userData?.type || localStorage.getItem('type') || 'Administrator';
+  
+  // Force viewType to be Administrator for admin view pages
+  const viewType = "Administrator";
 
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [importLoading, setImportLoading] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [filterConfig, setFilterConfig] = useState({
     strand: '',
@@ -29,23 +28,15 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   });
   const [availableSemesters, setAvailableSemesters] = useState([]);
   const [currentSemesterIndex, setCurrentSemesterIndex] = useState(0);
-  const fileInputRef = useRef(null);
 
   const API_BASE = "http://localhost:5000/api";
-  const PYTHON_BASE = "http://localhost:5001/api";
 
-  const getOfficeClass = () => {
-    switch (viewType) {
-      case "OPD": return "office-records-opd";
-      case "GCO": return "office-records-gco";
-      case "INF": return "office-records-inf";
-      default: return "office-records-default";
-    }
-  };
+  // Use default styling for admin view
+  const getOfficeClass = () => "office-records-default";
 
   const getTitle = () => {
     const currentSemester = availableSemesters[currentSemesterIndex] || 'Loading...';
-    return `Student Data: < ${currentSemester} >`;
+    return `Student Data (Admin View): < ${currentSemester} >`;
   };
 
   // Make columns sortable
@@ -212,98 +203,19 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelect = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv'
-    ];
-
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/)) {
-      alert('Please select a valid Excel (.xlsx, .xls) or CSV (.csv) file');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size too large. Please select a file smaller than 10MB.');
-      return;
-    }
-
-    await uploadFile(file);
-  };
-
-  const uploadFile = async (file) => {
-    try {
-      setImportLoading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(`${PYTHON_BASE}/import-students`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || `Import failed with status: ${response.status}`);
-      }
-
-      let message = `✅ Import successful!\n\nTotal: ${data.summary.total_records}\nImported: ${data.summary.successful_imports}\nFailed: ${data.summary.failed_imports}`;
-      if (data.errors) {
-        message += `\n\nFirst few errors:\n${data.errors.join('\n')}`;
-      }
-      alert(message);
-
-      fetchStudents(); // Refresh data after import
-    } catch (err) {
-      console.error('Error importing file:', err);
-      alert(`Import failed: ${err.message}`);
-    } finally {
-      setImportLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
   useEffect(() => {
     fetchStudents();
   }, []);
 
-  const handleAddRecord = () => setShowAddModal(true);
-  const handleCloseModal = () => setShowAddModal(false);
-
   const handleRowClick = (student) => {
     console.log('Student clicked:', student);
+    // Admin can view but not edit student data
   };
 
   if (loading && students.length === 0) {
     return (
       <div className={`office-records-container ${getOfficeClass()}`}>
-        {/* <DemoOverlay /> */}
         <NavBar userDepartment={department} userType={type} userName={name} onLogout={onLogout} onNavItemClick={onNavItemClick} />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button 
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
         <div className="office-records-header">
           <Breadcrumbs />
           <hr />
@@ -318,40 +230,21 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
-      {/* <DemoOverlay /> */}
-     <NavBar
-      userDepartment={department}
-      userType={type}
-      userName={name}
-      onLogout={onLogout}
-      onNavItemClick={onNavItemClick}
-      onExitViewAs={onExitViewAs}
-    />
+      <NavBar
+        userDepartment={department}
+        userType={type}
+        userName={name}
+        onLogout={onLogout}
+        onNavItemClick={onNavItemClick}
+      />
       
-      {/* View As Banner for Administrator */}
-      {type === "Administrator" && viewType !== "Administrator" && (
-        <div className="view-as-banner">
-          <div className="view-as-content">
-            <span className="view-as-text">
-              You are viewing as: <strong>{viewType}</strong>
-            </span>
-            <button 
-              onClick={onExitViewAs}
-              className="exit-view-as-btn"
-            >
-              Exit View As
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="office-records-header">
         <Breadcrumbs />
         <hr />
         <div className="header-flex">
           <div className="header-left">
             <h2>
-              <FaUser /> Student Data: 
+              <FaUser /> Student Data (Admin View):
               <div className="semester-navigation">
                 <button 
                   onClick={handlePreviousSemester}
@@ -375,16 +268,6 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             {loading && <div className="loading-indicator">Updating...</div>}
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-            {viewType === "OPD" && type === "OPD" && (
-              <>
-                <ImportButton
-                  onClick={handleImportClick}
-                  type={viewType}
-                  label={importLoading ? "Importing..." : "Import"}
-                  disabled={importLoading}
-                />
-              </>
-            )}
             <SearchBar onSearch={handleSearch} disabled={loading} />
           </div>
         </div>
@@ -399,6 +282,8 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             </button>
           </div>
         )}
+        
+        
         <DataTable
           data={filteredAndSortedStudents}
           columns={studentColumns}
@@ -413,16 +298,6 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         )}
       </div>
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        accept=".xlsx,.xls,.csv"
-        style={{ display: 'none' }}
-      />
-
-      <AddRecordComponent isOpen={showAddModal} onClose={handleCloseModal} type={viewType} />
-
       <div className="footer">
         <div className="footer-header"><FaShieldAlt /> DATA PRIVACY CLOSURE</div>
         <div className="footer-text">
@@ -433,4 +308,4 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   );
 };
 
-export default StudentData;
+export default AdminStudentData;

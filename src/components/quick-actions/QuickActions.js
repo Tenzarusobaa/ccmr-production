@@ -85,7 +85,6 @@ const QuickActions = ({ userType }) => {
         </div>
       )}
 
-      <h3>Quick Actions</h3>
       
       {/* Pending Referrals Section */}
       <div className="pending-referrals-section">

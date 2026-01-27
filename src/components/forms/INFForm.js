@@ -19,11 +19,12 @@ const INFForm = ({
   onRemoveNewFile,
   onFileClassifications,
   isEditMode = false,
-  isDisabled = false // NEW: Disable form fields for OPD users
+  isDisabled = false
 }) => {
   const fileInputRef = useRef(null);
   const [validationError, setValidationError] = useState('');
   const [fileClassifications, setFileClassifications] = useState({});
+  const [maxFilesError, setMaxFilesError] = useState('');
 
   // Validate when isPsychological or isMedical changes
   useEffect(() => {
@@ -33,6 +34,19 @@ const INFForm = ({
       setValidationError('');
     }
   }, [formData.isPsychological, formData.isMedical]);
+
+  // Calculate remaining file slots
+  const totalCurrentFiles = (isEditMode ? existingFiles.length : 0) + selectedFiles.length;
+  const remainingSlots = 5 - totalCurrentFiles;
+
+  // Validate max files
+  useEffect(() => {
+    if (totalCurrentFiles > 5) {
+      setMaxFilesError(`Maximum 5 files allowed. You have ${totalCurrentFiles} files.`);
+    } else {
+      setMaxFilesError('');
+    }
+  }, [totalCurrentFiles]);
 
   // Pass file classifications to parent component when they change
   useEffect(() => {
@@ -44,11 +58,29 @@ const INFForm = ({
     }
   }, [fileClassifications, onFileClassifications]);
 
+  // Initialize classifications for existing files in edit mode
+  useEffect(() => {
+    if (isEditMode && existingFiles.length > 0) {
+      const existingClassifications = {};
+      existingFiles.forEach(file => {
+        existingClassifications[file.originalname || file.name] = {
+          filename: file.originalname || file.name,
+          isMedical: file.isMedical || false,
+          isPsychological: file.isPsychological || false
+        };
+      });
+      setFileClassifications(prev => ({ ...prev, ...existingClassifications }));
+    }
+  }, [isEditMode, existingFiles]);
+
   const handleAttachmentClick = () => {
+    if (isDisabled || remainingSlots <= 0) return;
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
+    if (isDisabled) return;
+    
     const files = Array.from(e.target.files);
     
     // Filter only PDF and DOCX files
@@ -65,9 +97,9 @@ const INFForm = ({
     }
     
     // Check total file count (existing + new)
-    const totalFiles = (isEditMode ? existingFiles.length : 0) + validFiles.length;
-    if (totalFiles > 5) {
-      alert(`Maximum 5 files allowed. You currently have ${isEditMode ? existingFiles.length : 0} files and tried to add ${validFiles.length} more. Please remove some files first.`);
+    const totalAfterAdd = totalCurrentFiles + validFiles.length;
+    if (totalAfterAdd > 5) {
+      alert(`Maximum 5 files allowed. You currently have ${totalCurrentFiles} files and tried to add ${validFiles.length} more. Please remove some files first.`);
       return;
     }
     
@@ -87,7 +119,8 @@ const INFForm = ({
         ...newClassifications
       }));
       
-      onFilesSelected(validFiles);
+      // Add new files to selected files
+      onFilesSelected([...selectedFiles, ...validFiles]);
     }
     
     // Reset file input
@@ -96,7 +129,9 @@ const INFForm = ({
     }
   };
 
-  const removeFile = (index) => {
+  const handleRemoveNewFile = (index) => {
+    if (isDisabled) return;
+    
     const fileToRemove = selectedFiles[index];
     const newFiles = [...selectedFiles];
     newFiles.splice(index, 1);
@@ -121,13 +156,6 @@ const INFForm = ({
     }));
   };
 
-  // Get file classifications for form submission
-  const getFileClassifications = () => {
-    return Object.values(fileClassifications).filter(classification => 
-      classification && classification.filename
-    );
-  };
-
   const getFileIcon = (fileType) => {
     if (fileType === 'application/pdf') return '📄';
     if (fileType.includes('word') || fileType.includes('document')) return '📝';
@@ -140,9 +168,6 @@ const INFForm = ({
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   };
-
-  // Calculate remaining file slots
-  const remainingSlots = 5 - (selectedFiles.length + (isEditMode ? existingFiles.length : 0));
 
   return (
     <div className="form-container">
@@ -161,7 +186,7 @@ const INFForm = ({
                 isLoading={isLoading}
                 placeholder="Enter ID Number"
                 required={true}
-                disabled={isDisabled} // NEW: Disable for OPD users
+                disabled={isDisabled}
               />
             </div>
             <div className="form-group">
@@ -172,7 +197,7 @@ const INFForm = ({
                 name="studentName"
                 value={formData.studentName} 
                 onChange={onInputChange}
-                disabled={true || isDisabled} // Always disabled + OPD restriction
+                disabled={true || isDisabled}
               />
             </div>
           </div>
@@ -185,7 +210,7 @@ const INFForm = ({
                 name="strand"
                 value={formData.strand} 
                 onChange={onInputChange}
-                disabled={true || isDisabled} // Always disabled + OPD restriction
+                disabled={true || isDisabled}
               />
             </div>
             <div className="form-group">
@@ -196,7 +221,7 @@ const INFForm = ({
                 name="gradeLevel"
                 value={formData.gradeLevel} 
                 onChange={onInputChange}
-                disabled={true || isDisabled} // Always disabled + OPD restriction
+                disabled={true || isDisabled}
               />
             </div>
             <div className="form-group">
@@ -207,7 +232,20 @@ const INFForm = ({
                 name="section"
                 value={formData.section} 
                 onChange={onInputChange}
-                disabled={true || isDisabled} // Always disabled + OPD restriction
+                disabled={true || isDisabled}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="schoolYearSemester">School Year & Semester</label>
+              <input 
+                type="text" 
+                id="schoolYearSemester" 
+                name="schoolYearSemester"
+                value={formData.schoolYearSemester || formData.schoolYear || ''} 
+                onChange={onInputChange}
+                disabled={true || isDisabled}
               />
             </div>
           </div>
@@ -225,7 +263,7 @@ const INFForm = ({
               onChange={onInputChange}
               placeholder="Enter subject or concern"
               required
-              disabled={isDisabled} // NEW: Disable for OPD users
+              disabled={isDisabled}
             />
           </div>
           <div className="form-group">
@@ -236,7 +274,7 @@ const INFForm = ({
               value={formData.status} 
               onChange={onInputChange}
               required
-              disabled={isDisabled} // NEW: Disable for OPD users
+              disabled={isDisabled}
             >
               <option value="">- Select Status -</option>
               <option value="Ongoing">Ongoing</option>
@@ -252,7 +290,7 @@ const INFForm = ({
               value={formData.referredToGCO} 
               onChange={onInputChange}
               required
-              disabled={isDisabled} // NEW: Disable for OPD users
+              disabled={isDisabled}
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>
@@ -267,7 +305,7 @@ const INFForm = ({
                 value={formData.isPsychological} 
                 onChange={onInputChange}
                 required
-                disabled={isDisabled} // NEW: Disable for OPD users
+                disabled={isDisabled}
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -282,7 +320,7 @@ const INFForm = ({
                 value={formData.isMedical} 
                 onChange={onInputChange}
                 required
-                disabled={isDisabled} // NEW: Disable for OPD users
+                disabled={isDisabled}
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -312,7 +350,7 @@ const INFForm = ({
             rows="4"
             placeholder="Enter detailed medical/psychological information..."
             required
-            disabled={isDisabled} // NEW: Disable for OPD users
+            disabled={isDisabled}
           ></textarea>
         </div>
         <div className="form-group">
@@ -324,7 +362,7 @@ const INFForm = ({
             onChange={onInputChange}
             rows="2"
             placeholder="Enter any additional remarks..."
-            disabled={isDisabled} // NEW: Disable for OPD users
+            disabled={isDisabled}
           ></textarea>
         </div>
       </div>
@@ -345,36 +383,71 @@ const INFForm = ({
           <p><strong>Maximum 5 files allowed</strong> (PDF, DOC, DOCX only, 10MB each)</p>
           <p>Remaining file slots: <strong>{remainingSlots}</strong></p>
         </div>
+
+        {maxFilesError && (
+          <div className="max-files-notice" style={{color: '#e74c3c', marginBottom: '10px'}}>
+            <small>{maxFilesError}</small>
+          </div>
+        )}
         
         {/* Existing files in edit mode */}
         {isEditMode && existingFiles.length > 0 && (
           <div className="existing-files">
             <h5>Current Files:</h5>
-            {existingFiles.map((file, index) => (
-              <div key={index} className="file-item existing">
-                <span className="file-icon">
-                  {getFileIcon(file.mimetype || file.type)}
-                </span>
-                <span className="file-name">{file.originalname || file.name}</span>
-                <span className="file-size">
-                  ({formatFileSize(file.size)})
-                </span>
-                <button 
-                  type="button" 
-                  className="remove-file-btn"
-                  onClick={() => onRemoveExistingFile(file.filename)}
-                  title="Remove file"
-                  disabled={isDisabled} // NEW: Disable for OPD users
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+            {existingFiles.map((file, index) => {
+              const fileName = file.originalname || file.name;
+              const classification = fileClassifications[fileName] || { isMedical: false, isPsychological: false };
+              
+              return (
+                <div key={index} className="file-item existing with-classification">
+                  <div className="file-info">
+                    <span className="file-icon">
+                      {getFileIcon(file.mimetype || file.type)}
+                    </span>
+                    <span className="file-name">{fileName}</span>
+                    <span className="file-size">
+                      ({formatFileSize(file.size)})
+                    </span>
+                  </div>
+                  
+                  <div className="file-classification">
+                    <label className="classification-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={classification.isMedical || false}
+                        onChange={(e) => handleFileClassificationChange(fileName, 'isMedical', e.target.checked)}
+                        disabled={isDisabled}
+                      />
+                      <span>Medical</span>
+                    </label>
+                    
+                    <label className="classification-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={classification.isPsychological || false}
+                        onChange={(e) => handleFileClassificationChange(fileName, 'isPsychological', e.target.checked)}
+                        disabled={isDisabled}
+                      />
+                      <span>Psychological</span>
+                    </label>
+                  </div>
+                  
+                  <button 
+                    type="button" 
+                    className="remove-file-btn"
+                    onClick={() => onRemoveExistingFile(file.filename)}
+                    title="Remove file"
+                    disabled={isDisabled}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {/* File upload area - ALWAYS ENABLED even for OPD users 
-        {remainingSlots > 0 && (
+        {remainingSlots > 0 && !isDisabled && (
           <div 
             className="attachment-box" 
             style={{ borderColor: primaryColor }}
@@ -387,8 +460,6 @@ const INFForm = ({
             </div>
           </div>
         )}
-
-        */}
         
         {/* Selected new files with classification checkboxes */}
         {selectedFiles.length > 0 && (
@@ -415,7 +486,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isMedical || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isMedical', e.target.checked)}
-                        disabled={isDisabled} // NEW: Disable for OPD users
+                        disabled={isDisabled}
                       />
                       <span>Medical</span>
                     </label>
@@ -425,7 +496,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isPsychological || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isPsychological', e.target.checked)}
-                        disabled={isDisabled} // NEW: Disable for OPD users
+                        disabled={isDisabled}
                       />
                       <span>Psychological</span>
                     </label>
@@ -434,9 +505,9 @@ const INFForm = ({
                   <button 
                     type="button" 
                     className="remove-file-btn"
-                    onClick={() => onRemoveNewFile(index)}
+                    onClick={() => handleRemoveNewFile(index)}
                     title="Remove file"
-                    disabled={isDisabled} // NEW: Disable for OPD users
+                    disabled={isDisabled}
                   >
                     ×
                   </button>

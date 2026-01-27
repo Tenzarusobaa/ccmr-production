@@ -15,6 +15,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
     strand: '',
     gradeLevel: '',
     section: '',
+    schoolYearSemester: '', // Added schoolYearSemester field
     // OPD fields
     violationLevel: '',
     status: '', // Single status field for all record types
@@ -102,9 +103,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   useEffect(() => {
     if (record) {
       console.log('Editing record data:', record);
-      console.log('Record status:', record.cor_status || record.status);
-      console.log('Record date:', record.cor_date || record.date);
-      console.log('Record time:', record.cor_time || record.time);
+      console.log('Record schoolYearSemester:', record.schoolYearSemester || record.cr_school_year_semester);
 
       setFormData(prev => ({
         ...prev,
@@ -113,6 +112,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
         strand: record.strand || record.cor_student_strand || '',
         gradeLevel: record.gradeLevel || record.cor_student_grade_level || '',
         section: record.section || record.cor_student_section || '',
+        schoolYearSemester: record.schoolYearSemester || record.cr_school_year_semester || '', // ADDED THIS LINE
 
         // FIXED: Use normalized status for form
         status: normalizeStatus(record.cor_status || record.status || ''),
@@ -193,13 +193,15 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleStudentSelect = (student) => {
+    console.log('Selected student in edit mode:', student); // Debug log
     setFormData(prev => ({
       ...prev,
       studentId: student.sd_id_number,
       studentName: student.sd_student_name,
       strand: student.sd_strand,
       gradeLevel: student.sd_grade_level,
-      section: student.sd_section
+      section: student.sd_section,
+      schoolYearSemester: student.sd_school_year_semesterr || '' // FIXED: Added schoolYearSemester
     }));
     clearSuggestions();
   };
@@ -260,6 +262,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('strand', formData.strand);
       formDataToSend.append('gradeLevel', formData.gradeLevel);
       formDataToSend.append('section', formData.section);
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester); // ADDED THIS LINE
       formDataToSend.append('violationLevel', formData.violationLevel);
       formDataToSend.append('status', formData.status);
       formDataToSend.append('description', formData.generalDescription);
@@ -283,7 +286,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       }
 
       const caseId = record.caseNo || record.cr_case_id;
-      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/case-records/${caseId}`, {
+      const response = await fetch(`http://localhost:5000/api/case-records/${caseId}`, {
         method: 'PUT',
         body: formDataToSend
       });
@@ -291,17 +294,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       const result = await response.json();
 
       if (result.success) {
-        // Prepare updated attachments for UI
-        const updatedAttachments = [
-          ...remainingExistingFiles,
-          ...(selectedFiles.length > 0 ? [{
-            filename: selectedFiles[0].name, // This will be updated by the server
-            originalname: selectedFiles[0].name,
-            size: selectedFiles[0].size,
-            type: selectedFiles[0].type
-          }] : [])
-        ];
-
+        // Prepare updated record for UI
         const updatedRecord = {
           ...record,
           id: formData.studentId,
@@ -309,12 +302,13 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
           strand: formData.strand,
           gradeLevel: formData.gradeLevel,
           section: formData.section,
+          schoolYearSemester: formData.schoolYearSemester,
           violationLevel: formData.violationLevel,
           status: formData.status,
           referred: formData.referToGCO,
           description: formData.generalDescription,
           remarks: formData.additionalRemarks,
-          attachments: updatedAttachments
+          // Note: attachments will be updated by the parent component via refresh
         };
 
         setLastUpdatedRecord(updatedRecord);
@@ -344,7 +338,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
     // Only validate date and time if status is NOT "To Schedule"
     if (formData.status !== 'To Schedule' && (!formData.date || !formData.time)) {
-      alert('Please fill in all required schedule details');
+      alert('Please fill in date and time when status is not "To Schedule"');
       return;
     }
 
@@ -359,19 +353,23 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('strand', formData.strand);
       formDataToSend.append('gradeLevel', formData.gradeLevel);
       formDataToSend.append('section', formData.section);
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester || '');
       formDataToSend.append('sessionNumber', formData.sessionNumber);
       formDataToSend.append('status', formData.status);
-      formDataToSend.append('date', formData.date);
-      formDataToSend.append('time', formData.time);
+      formDataToSend.append('date', formData.date || '');
+      formDataToSend.append('time', formData.time || '');
       formDataToSend.append('concern', formData.generalConcern);
-      formDataToSend.append('remarks', formData.additionalRemarks);
+      formDataToSend.append('remarks', formData.additionalRemarks || '');
       formDataToSend.append('psychologicalCondition', formData.psychologicalCondition);
 
       // Append existing files that are not marked for deletion
       const remainingExistingFiles = existingFiles.filter(file =>
         !filesToDelete.includes(file.filename)
       );
-      formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
+
+      if (remainingExistingFiles.length > 0) {
+        formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
+      }
 
       // Append files to delete
       filesToDelete.forEach(filename => {
@@ -384,31 +382,23 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       });
 
       const recordId = record.recordId || record.cor_record_id;
-      console.log('Updating record ID:', recordId);
+      console.log('Updating GCO record ID:', recordId);
       console.log('Form data status:', formData.status);
-      console.log('Form data date:', formData.date);
-      console.log('Form data time:', formData.time);
+      console.log('Date value:', formData.date);
+      console.log('Time value:', formData.time);
 
-      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/counseling-records/${recordId}`, {
+      // Use environment variable for API base URL
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
+      const response = await fetch(`${API_BASE_URL}api/counseling-records/${recordId}`, {
         method: 'PUT',
-        body: formDataToSend
+        body: formDataToSend,
+        // Remove Content-Type header for FormData
       });
 
       const result = await response.json();
       console.log('Update response:', result);
 
       if (result.success) {
-        // Prepare updated attachments for UI
-        const updatedAttachments = [
-          ...remainingExistingFiles,
-          ...selectedFiles.map(file => ({
-            filename: file.name,
-            originalname: file.name,
-            size: file.size,
-            type: file.type
-          }))
-        ];
-
         const updatedRecord = {
           ...record,
           id: formData.studentId,
@@ -416,6 +406,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
           strand: formData.strand,
           gradeLevel: formData.gradeLevel,
           section: formData.section,
+          schoolYearSemester: formData.schoolYearSemester,
           sessionNumber: formData.sessionNumber,
           status: formData.status,
           date: formData.date,
@@ -423,13 +414,18 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
           concern: formData.generalConcern,
           remarks: formData.additionalRemarks,
           psychologicalCondition: formData.psychologicalCondition,
-          attachments: updatedAttachments
+          attachments: [...remainingExistingFiles, ...selectedFiles.map(f => ({
+            filename: f.name,
+            originalname: f.name,
+            mimetype: f.type,
+            size: f.size
+          }))]
         };
 
         setLastUpdatedRecord(updatedRecord);
         setShowSuccess(true);
       } else {
-        throw new Error(result.message || 'Failed to update record');
+        throw new Error(result.message || result.error || 'Failed to update record');
       }
     } catch (error) {
       console.error('Error updating counseling record:', error);
@@ -438,133 +434,120 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       setIsSubmitting(false);
     }
   };
+const handleUpdateINFRecord = async () => {
+  // Validate required fields for INF
+  if (!formData.studentId || !formData.studentName) {
+    alert('Please select a student by entering a valid ID number');
+    return;
+  }
 
-  const handleUpdateINFRecord = async () => {
-    // Validate required fields for INF
-    if (!formData.studentId || !formData.studentName) {
-      alert('Please select a student by entering a valid ID number');
-      return;
-    }
+  if (!formData.subject || !formData.status) {
+    alert('Please fill in subject and status');
+    return;
+  }
 
-    if (!formData.subject || !formData.status) {
-      alert('Please fill in subject and status');
-      return;
-    }
+  if (!formData.medicalDetails) {
+    alert('Please provide medical details');
+    return;
+  }
 
-    if (!formData.medicalDetails) {
-      alert('Please provide medical details');
-      return;
-    }
+  if (!formData.isPsychological || !formData.isMedical) {
+    alert('Please specify if this is a psychological or medical record');
+    return;
+  }
 
-    if (!formData.isPsychological || !formData.isMedical) {
-      alert('Please specify if this is a psychological or medical record');
-      return;
-    }
+  // Check if both are set to "No"
+  if (formData.isPsychological === 'No' && formData.isMedical === 'No') {
+    alert('Record cannot be neither medical nor psychological');
+    return;
+  }
 
-    // NEW VALIDATION: Check if both are set to "No"
-    if (formData.isPsychological === 'No' && formData.isMedical === 'No') {
-      alert('Record cannot be neither medical nor psychological');
-      return;
-    }
+  setIsSubmitting(true);
 
-    setIsSubmitting(true);
+  try {
+    const formDataToSend = new FormData();
 
-    try {
-      const formDataToSend = new FormData();
+    // Append all form data
+    formDataToSend.append('studentId', formData.studentId);
+    formDataToSend.append('studentName', formData.studentName);
+    formDataToSend.append('strand', formData.strand);
+    formDataToSend.append('gradeLevel', formData.gradeLevel);
+    formDataToSend.append('section', formData.section);
+    formDataToSend.append('schoolYearSemester', formData.schoolYearSemester || '');
+    formDataToSend.append('subject', formData.subject);
+    formDataToSend.append('status', formData.status);
+    formDataToSend.append('medicalDetails', formData.medicalDetails);
+    formDataToSend.append('remarks', formData.additionalRemarks || '');
+    formDataToSend.append('referredToGCO', formData.referredToGCO);
+    formDataToSend.append('isPsychological', formData.isPsychological);
+    formDataToSend.append('isMedical', formData.isMedical);
 
-      // Append all form data - FIXED: Added missing status field
-      formDataToSend.append('studentId', formData.studentId);
-      formDataToSend.append('studentName', formData.studentName);
-      formDataToSend.append('strand', formData.strand);
-      formDataToSend.append('gradeLevel', formData.gradeLevel);
-      formDataToSend.append('section', formData.section);
-      formDataToSend.append('subject', formData.subject);
-      formDataToSend.append('status', formData.status); // ADDED THIS LINE
-      formDataToSend.append('medicalDetails', formData.medicalDetails);
-      formDataToSend.append('remarks', formData.additionalRemarks);
-      formDataToSend.append('referredToGCO', formData.referredToGCO);
-      formDataToSend.append('isPsychological', formData.isPsychological);
-      formDataToSend.append('isMedical', formData.isMedical);
-
-      // Append existing files that are not marked for deletion
-      const remainingExistingFiles = existingFiles.filter(file =>
-        !filesToDelete.includes(file.filename)
-      );
+    // Append existing files that are not marked for deletion
+    const remainingExistingFiles = existingFiles.filter(file =>
+      !filesToDelete.includes(file.filename)
+    );
+    
+    if (remainingExistingFiles.length > 0) {
       formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
-
-      // Append files to delete
-      filesToDelete.forEach(filename => {
-        formDataToSend.append('filesToDelete', filename);
-      });
-
-      // Append new files (multiple files allowed for INF)
-      selectedFiles.forEach(file => {
-        formDataToSend.append('attachments', file);
-      });
-
-      // Append file classifications for new files
-      console.log('Sending file classifications in edit:', fileClassifications);
-      if (fileClassifications && fileClassifications.length > 0) {
-        fileClassifications.forEach(classification => {
-          console.log('Appending classification in edit:', classification);
-          formDataToSend.append('fileClassifications', JSON.stringify(classification));
-        });
-      }
-
-      const recordId = record.mr_medical_id || record.recordId;
-      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/medical-records/${recordId}`, {
-        method: 'PUT',
-        body: formDataToSend
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Prepare updated attachments for UI
-        const updatedAttachments = [
-          ...remainingExistingFiles,
-          ...selectedFiles.map((file, index) => {
-            const classification = fileClassifications[index] || {};
-            return {
-              filename: file.name,
-              originalname: file.name,
-              size: file.size,
-              type: file.type,
-              isMedical: classification.isMedical || false,
-              isPsychological: classification.isPsychological || false
-            };
-          })
-        ];
-
-        const updatedRecord = {
-          ...record,
-          mr_student_id: formData.studentId,
-          mr_student_name: formData.studentName,
-          mr_student_strand: formData.strand,
-          mr_grade_level: formData.gradeLevel,
-          mr_section: formData.section,
-          mr_subject: formData.subject,
-          mr_status: formData.status,
-          mr_medical_details: formData.medicalDetails,
-          mr_additional_remarks: formData.additionalRemarks,
-          mr_referred: formData.referredToGCO,
-          mr_is_psychological: formData.isPsychological,
-          mr_is_medical: formData.isMedical,
-          attachments: updatedAttachments
-        };
-
-        setLastUpdatedRecord(updatedRecord);
-        setShowSuccess(true);
-      } else {
-        throw new Error(result.message || 'Failed to update record');
-      }
-    } catch (error) {
-      console.error('Error updating medical record:', error);
-      alert(`Error updating record: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+
+    // Append files to delete
+    filesToDelete.forEach(filename => {
+      formDataToSend.append('filesToDelete', filename);
+    });
+
+    // Append new files (multiple files allowed for INF)
+    selectedFiles.forEach(file => {
+      formDataToSend.append('attachments', file);
+    });
+
+    // Append file classifications for new files
+    if (fileClassifications && fileClassifications.length > 0) {
+      formDataToSend.append('fileClassifications', JSON.stringify(fileClassifications));
+    }
+
+    const recordId = record.mr_medical_id || record.recordId;
+    console.log('Updating INF record ID:', recordId);
+
+    const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
+    const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
+      method: 'PUT',
+      body: formDataToSend,
+    });
+
+    const result = await response.json();
+    console.log('Update response:', result);
+
+    if (result.success) {
+      const updatedRecord = {
+        ...record,
+        mr_student_id: formData.studentId,
+        mr_student_name: formData.studentName,
+        mr_student_strand: formData.strand,
+        mr_grade_level: formData.gradeLevel,
+        mr_section: formData.section,
+        mr_school_year_semester: formData.schoolYearSemester,
+        mr_subject: formData.subject,
+        mr_status: formData.status,
+        mr_medical_details: formData.medicalDetails,
+        mr_additional_remarks: formData.additionalRemarks,
+        mr_referred: formData.referredToGCO,
+        mr_is_psychological: formData.isPsychological,
+        mr_is_medical: formData.isMedical,
+      };
+
+      setLastUpdatedRecord(updatedRecord);
+      setShowSuccess(true);
+    } else {
+      throw new Error(result.message || result.error || 'Failed to update record');
+    }
+  } catch (error) {
+    console.error('Error updating medical record:', error);
+    alert(`Error updating record: ${error.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleUpdateRecord = () => {
     if (recordType === "OPD") {

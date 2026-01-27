@@ -1,47 +1,40 @@
-// src/pages/OPDRecords.js
+// src/pages/AdminVIEW/AdminOPDRecords.js
 import React, { useState, useEffect, useMemo } from 'react';
-import NavBar from '../components/navigation/NavBar';
-import Breadcrumbs from '../components/navigation/Breadcrumbs';
-import SearchBar from '../components/search/SearchBar';
-import AddButton from '../components/buttons/AddButton';
-import DataTable from '../components/tables/DataTable';
-import AddRecordComponent from '../components/modals/AddRecordComponent';
-import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
+import { useLocation } from 'react-router-dom';
+import NavBar from '../../components/navigation/NavBar';
+import Breadcrumbs from '../../components/navigation/Breadcrumbs';
+import SearchBar from '../../components/search/SearchBar';
+import DataTable from '../../components/tables/DataTable';
+import ViewStudentRecordsComponent from '../../components/modals/ViewStudentRecordsComponent';
 import { FaFolder, FaShieldAlt, FaUser } from 'react-icons/fa';
-import './OfficeRecords.css';
+import '../OfficeRecords.css';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
-const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+const AdminOPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+  const location = useLocation();
   const name = userData?.name || localStorage.getItem('userName') || 'User';
-  const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
-  const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
-  const viewType = userData?.viewType || type; // Use viewType if available, otherwise use actual type
+  const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
+  const type = userData?.type || localStorage.getItem('type') || 'Administrator';
+  
+  // Force viewType to be Administrator for admin view pages
+  const viewType = "Administrator";
 
   const [records, setRecords] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getOfficeClass = () => {
-    switch (viewType) {
-      case "OPD": return "office-records-opd";
-      case "GCO": return "office-records-gco";
-      case "INF": return "office-records-inf";
-      default: return "office-records-default";
-    }
-  };
+  // Use default styling for admin view
+  const getOfficeClass = () => "office-records-default";
 
   const getTitle = () => {
-    if (viewType === "OPD") return "Case Records";
-    if (viewType === "GCO") return "Referred Case Records";
-    return "Case Records";
+    return "OPD Case Records (Admin View)";
   };
 
   // Student columns for search results (aggregated view)
@@ -197,9 +190,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setError(null);
       setIsSearchMode(false);
 
-      const endpoint = viewType === "GCO"
-        ? `${API_BASE_URL}api/case-records/referred`
-        : `${API_BASE_URL}api/case-records`;
+      const endpoint = `${API_BASE_URL}api/case-records`;
 
       const response = await fetch(endpoint);
 
@@ -230,9 +221,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setError(null);
       setIsSearchMode(true);
 
-      const endpoint = viewType === "GCO"
-        ? `${API_BASE_URL}api/student-case-records/referred`
-        : `${API_BASE_URL}api/student-case-records`;
+      const endpoint = `${API_BASE_URL}api/student-case-records`;
 
       const response = await fetch(endpoint);
 
@@ -256,7 +245,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Handle search - UPDATED: Use different endpoint for GCO search
+  // Handle search
   const handleSearch = async (query) => {
     setSearchQuery(query);
 
@@ -271,17 +260,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setError(null);
       setIsSearchMode(true);
 
-      // Use different search endpoint based on viewType
-      let endpoint;
-      if (viewType === "GCO") {
-        // GCO should only see referred case records in search
-        endpoint = `${API_BASE_URL}api/student-case-records/referred/search?query=${encodeURIComponent(query)}`;
-      } else {
-        // OPD sees all case records in search
-        endpoint = `${API_BASE_URL}api/student-case-records/search?query=${encodeURIComponent(query)}`;
-      }
-
-      console.log('Searching with viewType:', viewType, 'Endpoint:', endpoint);
+      const endpoint = `${API_BASE_URL}api/student-case-records/search?query=${encodeURIComponent(query)}`;
 
       const response = await fetch(endpoint);
 
@@ -316,25 +295,11 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   useEffect(() => {
     fetchAllRecords();
-  }, [viewType]);
-
-  const handleAddRecord = () => {
-    setShowAddModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowAddModal(false);
-    refreshData();
-  };
+  }, []);
 
   const handleCloseStudentModal = () => {
     setShowStudentModal(false);
     setSelectedStudent(null);
-    refreshData();
-  };
-
-  const handleRecordAdded = () => {
-    setShowAddModal(false);
     refreshData();
   };
 
@@ -367,24 +332,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
           userName={name}
           onLogout={onLogout}
           onNavItemClick={onNavItemClick}
-          onExitViewAs={onExitViewAs}
         />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
         <div className="office-records-header">
           <div className="header-flex">
             <div className="header-left">
@@ -416,22 +364,6 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
           onLogout={onLogout}
           onNavItemClick={onNavItemClick}
         />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
         <div className="office-records-header">
           <div className="header-flex">
             <div className="header-left">
@@ -467,23 +399,6 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onNavItemClick={onNavItemClick}
       />
 
-      {/* View As Banner for Administrator */}
-      {type === "Administrator" && viewType !== "Administrator" && (
-        <div className="view-as-banner">
-          <div className="view-as-content">
-            <span className="view-as-text">
-              You are viewing as: <strong>{viewType}</strong>
-            </span>
-            <button
-              onClick={onExitViewAs}
-              className="exit-view-as-btn"
-            >
-              Exit View As
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="office-records-header">
         <div className="header-flex">
           <div className="header-left">
@@ -496,9 +411,6 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             <h2><FaFolder /> {getTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-            {viewType === "OPD" && type === "OPD" && (
-              <AddButton onClick={handleAddRecord} type={viewType} />
-            )}
             <SearchBar onSearch={handleSearch} placeholder="Search by ID, Name, or Strand" />
           </div>
         </div>
@@ -521,7 +433,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
           // Default mode: Show flat table of individual records
           <>
             {sortedRecords.length === 0 ? (
-              <div className="empty-state">No records found. Create a new record to get started.</div>
+              <div className="empty-state">No records found.</div>
             ) : (
               <div className="table-scroll-container">
                 <table className="data-table">
@@ -574,13 +486,6 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         )}
       </div>
 
-      <AddRecordComponent
-        isOpen={showAddModal}
-        onClose={handleCloseModal}
-        onRecordAdded={handleRecordAdded}
-        type={viewType}
-      />
-
       <ViewStudentRecordsComponent
         isOpen={showStudentModal}
         onClose={handleCloseStudentModal}
@@ -598,4 +503,4 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   );
 };
 
-export default OPDRecords;
+export default AdminOPDRecords;

@@ -44,12 +44,15 @@ const StudentAutocomplete = ({
         <div className="suggestions-dropdown">
           {studentSuggestions.map((student, index) => (
             <div
-              key={index}
+              key={`${student.sd_id_number}-${index}`}
               className="suggestion-item"
               onClick={() => handleSuggestionClick(student)}
             >
               <div className="student-id">{student.sd_id_number}</div>
               <div className="student-name">{student.sd_student_name}</div>
+              <div className="student-details">
+                {student.sd_grade_level} • {student.sd_school_year_semesterr}
+              </div>
             </div>
           ))}
         </div>

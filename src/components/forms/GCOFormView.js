@@ -38,7 +38,7 @@ const GCOFormView = ({ record, primaryColor }) => {
     const filename = file.filename || file.originalname;
     
     if (recordId && filename) {
-      const downloadUrl = `https://ccmr-final-node-production.up.railway.app/api/counseling-records/${recordId}/files/${filename}`;
+      const downloadUrl = `http://localhost:5000/api/counseling-records/${recordId}/files/${filename}`;
       window.open(downloadUrl, '_blank');
     } else {
       console.error('Missing recordId or filename for download');
@@ -129,6 +129,17 @@ const GCOFormView = ({ record, primaryColor }) => {
                 type="text"
                 id="section"
                 value={record.cor_student_section || record.section || ''}
+                disabled
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="schoolYearSemester">School Year & Semester</label>
+              <input
+                type="text"
+                id="schoolYearSemester"
+                value={record.schoolYearSemester || record.cor_school_year_semester || ''}
                 disabled
               />
             </div>

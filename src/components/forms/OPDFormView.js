@@ -9,7 +9,7 @@ const OPDFormView = ({ record, primaryColor }) => {
     const filename = file.filename;
 
     if (caseId && filename) {
-      const downloadUrl = `https://ccmr-final-node-production.up.railway.app/api/case-records/${caseId}/files/${filename}`;
+      const downloadUrl = `http://localhost:5000/api/case-records/${caseId}/files/${filename}`;
       window.open(downloadUrl, '_blank');
     } else {
       console.error('Missing caseId or filename for download');
@@ -104,6 +104,17 @@ const OPDFormView = ({ record, primaryColor }) => {
               />
             </div>
           </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="schoolYearSemester">School Year & Semester</label>
+              <input
+                type="text"
+                id="schoolYearSemester"
+                value={record.schoolYearSemester || record.cr_school_year_semester || ''}
+                disabled
+              />
+            </div>
+          </div>
         </div>
 
         <div className="form-section">
@@ -175,7 +186,7 @@ const OPDFormView = ({ record, primaryColor }) => {
         {attachments.length > 0 ? (
           <div className="attachments-list">
             {attachments.map((file, index) => {
-              const fileName = file.originalname || file.name || 'Unknown File'; // Use originalname for display
+              const fileName = file.originalname || file.name || 'Unknown File';
               const fileType = file.type || file.mimetype || '';
               const fileSize = file.size;
 
@@ -190,7 +201,7 @@ const OPDFormView = ({ record, primaryColor }) => {
                     {getFileIcon(fileType, fileName)}
                   </div>
                   <div className="file-info-view">
-                    <div className="file-name-view">{fileName}</div> {/* Display original name */}
+                    <div className="file-name-view">{fileName}</div>
                     <div className="file-details-view">
                       <span className="file-type">{getFileTypeText(fileType, fileName)}</span>
                       {fileSize && (

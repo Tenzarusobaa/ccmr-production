@@ -1,47 +1,50 @@
-// src/pages/OPDRecords.js
+// src/pages/AdminVIEW/AdminINFRecords.js
 import React, { useState, useEffect, useMemo } from 'react';
-import NavBar from '../components/navigation/NavBar';
-import Breadcrumbs from '../components/navigation/Breadcrumbs';
-import SearchBar from '../components/search/SearchBar';
-import AddButton from '../components/buttons/AddButton';
-import DataTable from '../components/tables/DataTable';
-import AddRecordComponent from '../components/modals/AddRecordComponent';
-import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
-import { FaFolder, FaShieldAlt, FaUser } from 'react-icons/fa';
-import './OfficeRecords.css';
+import NavBar from '../../components/navigation/NavBar';
+import Breadcrumbs from '../../components/navigation/Breadcrumbs';
+import SearchBar from '../../components/search/SearchBar';
+import DataTable from '../../components/tables/DataTable';
+import ViewStudentRecordsComponent from '../../components/modals/ViewStudentRecordsComponent';
+import { FaFolder, FaShieldAlt, FaUser, FaFileMedical, FaStethoscope } from 'react-icons/fa';
+import FilterMedical from '../../components/buttons/FilterMedical';
+import '../OfficeRecords.css';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
-const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const name = userData?.name || localStorage.getItem('userName') || 'User';
-  const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
-  const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
-  const viewType = userData?.viewType || type; // Use viewType if available, otherwise use actual type
+  const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
+  const type = userData?.type || localStorage.getItem('type') || 'Administrator';
+
+  // Force viewType to be Administrator for admin view pages
+  const viewType = "Administrator";
 
   const [records, setRecords] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentFilter, setCurrentFilter] = useState('ALL');
 
-  const getOfficeClass = () => {
-    switch (viewType) {
-      case "OPD": return "office-records-opd";
-      case "GCO": return "office-records-gco";
-      case "INF": return "office-records-inf";
-      default: return "office-records-default";
-    }
-  };
+  // Use default styling for admin view
+  const getOfficeClass = () => "office-records-default";
 
   const getTitle = () => {
-    if (viewType === "OPD") return "Case Records";
-    if (viewType === "GCO") return "Referred Case Records";
-    return "Case Records";
+    return "Infirmary Medical Records (Admin View)";
+  };
+
+  const getFilterTitle = () => {
+    switch (currentFilter) {
+      case 'ALL': return "All Records";
+      case 'MEDICALPSYCHOLOGICAL': return "Medical & Psychological Records (Both)";
+      case 'MEDICAL': return "Medical Records Only";
+      case 'PSYCHOLOGICAL': return "Psychological Records Only";
+      default: return "Medical Records";
+    }
   };
 
   // Student columns for search results (aggregated view)
@@ -50,20 +53,47 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       key: 'id',
       label: 'ID No.',
       sortable: true,
+      render: (value, row) => (
+        <div className="student-id-cell">
+          <FaUser className="student-icon" />
+          <span>{value}</span>
+        </div>
+      )
     },
     { key: 'name', label: 'Student Name', sortable: true },
     { key: 'strand', label: 'Strand', sortable: true },
     { key: 'gradeLevel', label: 'Grade Level', sortable: true },
     { key: 'section', label: 'Section', sortable: true },
     {
-      key: 'caseCount',
-      label: 'Case Count',
+      key: 'medicalCount',
+      label: 'Record Count',
       sortable: true,
       render: (value) => (
-        <span className={`case-count-badge ${value > 0 ? 'has-cases' : 'no-cases'}`}>
-          {value} case{value !== 1 ? 's' : ''}
+        <span className={`medical-count-badge ${value > 0 ? 'has-records' : 'no-records'}`}>
+          <FaFileMedical style={{ marginRight: '5px' }} />
+          {value} record{value !== 1 ? 's' : ''}
         </span>
       )
+    },
+    {
+      key: 'recordTypes',
+      label: 'Record Types',
+      sortable: false,
+      render: (_, row) => {
+        const types = [];
+        if (row.hasMedical && row.hasMedical.includes('Yes')) types.push('Medical');
+        if (row.hasPsychological && row.hasPsychological.includes('Yes')) types.push('Psychological');
+
+        return (
+          <div className="record-types">
+            {types.map(type => (
+              <span key={type} className={`type-badge type-${type.toLowerCase()}`}>
+                {type}
+              </span>
+            ))}
+          </div>
+        );
+      }
     },
     {
       key: 'latestStatus',
@@ -79,14 +109,14 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   // Record columns for default view (individual records)
   const recordColumns = [
-    { key: 'caseNo', label: 'Case No.', sortable: true },
+    { key: 'recordId', label: 'Record No.', sortable: true },
     { key: 'id', label: 'ID No.', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'strand', label: 'Strand', sortable: true },
     { key: 'gradeLevel', label: 'Grade Level', sortable: true },
     { key: 'section', label: 'Section', sortable: true },
     { key: 'schoolYearSemester', label: 'School Year & Semester', sortable: true },
-    { key: 'violationLevel', label: 'Severity', sortable: true },
+    { key: 'subject', label: 'Subject', sortable: true },
     {
       key: 'status',
       label: 'Status',
@@ -96,6 +126,17 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
           {value}
         </span>
       )
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      sortable: true,
+      render: (_, row) => {
+        const types = [];
+        if (row.isMedical === 'Yes') types.push('Medical');
+        if (row.isPsychological === 'Yes') types.push('Psychological');
+        return types.join(', ') || 'None';
+      }
     },
     { key: 'date', label: 'Date', sortable: true }
   ];
@@ -123,7 +164,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
 
       // Handle numeric fields
-      if (sortConfig.key === 'caseNo' || sortConfig.key === 'gradeLevel') {
+      if (sortConfig.key === 'recordId' || sortConfig.key === 'gradeLevel') {
         const aNum = parseInt(aValue, 10);
         const bNum = parseInt(bValue, 10);
         if (isNaN(aNum) && isNaN(bNum)) return 0;
@@ -161,16 +202,14 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
       if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
-      if (sortConfig.key === 'caseCount' || sortConfig.key === 'gradeLevel') {
+      if (sortConfig.key === 'medicalCount' || sortConfig.key === 'gradeLevel') {
         const aNum = parseInt(aValue, 10);
         const bNum = parseInt(bValue, 10);
         if (isNaN(aNum) && isNaN(bNum)) return 0;
         if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
         if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
 
-        return sortConfig.direction === 'asc'
-          ? aNum - bNum
-          : bNum - aNum;
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
       }
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
@@ -185,21 +224,40 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     });
   }, [students, sortConfig]);
 
-  // Handle sorting
+  const cycleFilter = () => {
+    const filters = ['ALL', 'MEDICALPSYCHOLOGICAL', 'MEDICAL', 'PSYCHOLOGICAL'];
+    const currentIndex = filters.indexOf(currentFilter);
+    const nextIndex = (currentIndex + 1) % filters.length;
+    const newFilter = filters[nextIndex];
+
+    setCurrentFilter(newFilter);
+
+    // If we're in search mode with a query, refresh search with new filter
+    if (isSearchMode && searchQuery) {
+      handleSearch(searchQuery);
+    } else if (isSearchMode) {
+      // If we're in search mode but no query, fetch students with new filter
+      fetchStudents();
+    } else {
+      // In default mode, fetch all records with filter applied
+      fetchAllRecords();
+    }
+  };
+
   const handleSort = (sortConfig) => {
     setSortConfig(sortConfig);
   };
 
-  // Fetch all case records (default view)
+  // Fetch all medical records (default view) - direct INF records
   const fetchAllRecords = async () => {
     try {
       setLoading(true);
       setError(null);
       setIsSearchMode(false);
 
-      const endpoint = viewType === "GCO"
-        ? `${API_BASE_URL}api/case-records/referred`
-        : `${API_BASE_URL}api/case-records`;
+      const endpoint = `${API_BASE_URL}api/infirmary/medical-records?filter=${currentFilter}`;
+
+      console.log('Fetching INF records with filter:', currentFilter, 'Endpoint:', endpoint);
 
       const response = await fetch(endpoint);
 
@@ -223,16 +281,16 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Fetch students with case records (search mode)
+  // Fetch students with medical records (search mode)
   const fetchStudents = async () => {
     try {
       setLoading(true);
       setError(null);
       setIsSearchMode(true);
 
-      const endpoint = viewType === "GCO"
-        ? `${API_BASE_URL}api/student-case-records/referred`
-        : `${API_BASE_URL}api/student-case-records`;
+      const endpoint = `${API_BASE_URL}api/student-medical-records?filter=${currentFilter}`;
+
+      console.log('Fetching INF students with filter:', currentFilter, 'Endpoint:', endpoint);
 
       const response = await fetch(endpoint);
 
@@ -256,12 +314,12 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Handle search - UPDATED: Use different endpoint for GCO search
+  // Handle search
   const handleSearch = async (query) => {
     setSearchQuery(query);
 
     if (!query.trim()) {
-      // If search is cleared, show default records view
+      // If search is cleared, show default records view with current filter
       fetchAllRecords();
       return;
     }
@@ -271,17 +329,9 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setError(null);
       setIsSearchMode(true);
 
-      // Use different search endpoint based on viewType
-      let endpoint;
-      if (viewType === "GCO") {
-        // GCO should only see referred case records in search
-        endpoint = `${API_BASE_URL}api/student-case-records/referred/search?query=${encodeURIComponent(query)}`;
-      } else {
-        // OPD sees all case records in search
-        endpoint = `${API_BASE_URL}api/student-case-records/search?query=${encodeURIComponent(query)}`;
-      }
+      const endpoint = `${API_BASE_URL}api/medical-records/search?query=${encodeURIComponent(query)}&filter=${currentFilter}`;
 
-      console.log('Searching with viewType:', viewType, 'Endpoint:', endpoint);
+      console.log('Searching INF records with query:', query, 'Filter:', currentFilter, 'Endpoint:', endpoint);
 
       const response = await fetch(endpoint);
 
@@ -292,40 +342,36 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       const data = await response.json();
 
       if (data.success) {
-        setStudents(data.students || []);
-        setRecords([]);
+        setStudents([]); // Clear students for now
+        setRecords(data.records || []); // Show search results as individual records
       } else {
         throw new Error(data.error || 'Search failed');
       }
     } catch (err) {
-      console.error('Error searching students:', err);
+      console.error('Error searching records:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Refresh data
   const refreshData = () => {
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
+    } else if (isSearchMode) {
+      fetchStudents();
     } else {
       fetchAllRecords();
     }
   };
 
   useEffect(() => {
-    fetchAllRecords();
-  }, [viewType]);
-
-  const handleAddRecord = () => {
-    setShowAddModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowAddModal(false);
-    refreshData();
-  };
+    if (isSearchMode && !searchQuery) {
+      fetchStudents();
+    } else {
+      fetchAllRecords();
+    }
+  }, [currentFilter]);
 
   const handleCloseStudentModal = () => {
     setShowStudentModal(false);
@@ -333,19 +379,26 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     refreshData();
   };
 
-  const handleRecordAdded = () => {
-    setShowAddModal(false);
-    refreshData();
-  };
-
   const handleRowClick = (recordOrStudent) => {
     if (isSearchMode) {
-      // In search mode, we have student objects with aggregated data
-      setSelectedStudent(recordOrStudent);
-      setShowStudentModal(true);
+      // In search mode, we might have student objects or record objects
+      if (recordOrStudent.medicalCount !== undefined) {
+        // This is a student object from aggregated view
+        setSelectedStudent(recordOrStudent);
+        setShowStudentModal(true);
+      } else {
+        // This is a record object from search results
+        setSelectedStudent({
+          id: recordOrStudent.id,
+          name: recordOrStudent.name,
+          strand: recordOrStudent.strand,
+          gradeLevel: recordOrStudent.gradeLevel,
+          section: recordOrStudent.section
+        });
+        setShowStudentModal(true);
+      }
     } else {
       // In default mode, we have individual record objects
-      // Extract student info from the record
       setSelectedStudent({
         id: recordOrStudent.id,
         name: recordOrStudent.name,
@@ -367,24 +420,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
           userName={name}
           onLogout={onLogout}
           onNavItemClick={onNavItemClick}
-          onExitViewAs={onExitViewAs}
         />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
         <div className="office-records-header">
           <div className="header-flex">
             <div className="header-left">
@@ -416,22 +452,6 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
           onLogout={onLogout}
           onNavItemClick={onNavItemClick}
         />
-        {/* View As Banner for Administrator */}
-        {type === "Administrator" && viewType !== "Administrator" && (
-          <div className="view-as-banner">
-            <div className="view-as-content">
-              <span className="view-as-text">
-                You are viewing as: <strong>{viewType}</strong>
-              </span>
-              <button
-                onClick={onExitViewAs}
-                className="exit-view-as-btn"
-              >
-                Exit View As
-              </button>
-            </div>
-          </div>
-        )}
         <div className="office-records-header">
           <div className="header-flex">
             <div className="header-left">
@@ -467,23 +487,6 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onNavItemClick={onNavItemClick}
       />
 
-      {/* View As Banner for Administrator */}
-      {type === "Administrator" && viewType !== "Administrator" && (
-        <div className="view-as-banner">
-          <div className="view-as-content">
-            <span className="view-as-text">
-              You are viewing as: <strong>{viewType}</strong>
-            </span>
-            <button
-              onClick={onExitViewAs}
-              className="exit-view-as-btn"
-            >
-              Exit View As
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="office-records-header">
         <div className="header-flex">
           <div className="header-left">
@@ -493,12 +496,18 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
+            <h2><FaFolder /> {getFilterTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
-          <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
-            {viewType === "OPD" && type === "OPD" && (
-              <AddButton onClick={handleAddRecord} type={viewType} />
-            )}
+          <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+            {!isSearchMode || !searchQuery ? (
+              <FilterMedical
+                type={viewType}
+                onClick={cycleFilter}
+                currentFilter={currentFilter}
+              />
+            ) : null}
+
             <SearchBar onSearch={handleSearch} placeholder="Search by ID, Name, or Strand" />
           </div>
         </div>
@@ -506,8 +515,8 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
       <div className="content">
         {isSearchMode ? (
-          // Search mode: Show aggregated student table
-          <>
+          // Search mode: Show aggregated student table if we have student data, otherwise show individual records
+          sortedStudents.length > 0 ? (
             <DataTable
               data={sortedStudents}
               columns={studentColumns}
@@ -516,12 +525,66 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
               onSort={handleSort}
               sortConfig={sortConfig}
             />
-          </>
+          ) : (
+            // Show search results as individual records
+            <>
+              {sortedRecords.length === 0 ? (
+                <div className="empty-state">No records found matching your search.</div>
+              ) : (
+                <div className="table-scroll-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        {recordColumns.map((column) => (
+                          <th
+                            key={column.key}
+                            onClick={() => column.sortable && handleSort({
+                              key: column.key,
+                              direction: sortConfig.key === column.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                            })}
+                            className={column.sortable ? 'sortable' : ''}
+                          >
+                            <span className="column-header-content">
+                              {column.label}
+                              {column.sortable && (
+                                <span className="sort-indicator">
+                                  {sortConfig && sortConfig.key === column.key
+                                    ? sortConfig.direction === 'asc' ? '↑' : '↓'
+                                    : '↕️'
+                                  }
+                                </span>
+                              )}
+                            </span>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedRecords.map((record, index) => (
+                        <tr
+                          key={record.recordId || `row-${index}`}
+                          onClick={() => handleRowClick(record)}
+                          className="clickable-row"
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {recordColumns.map((column) => (
+                            <td key={column.key}>
+                              {column.render ? column.render(record[column.key], record) : record[column.key]}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )
         ) : (
           // Default mode: Show flat table of individual records
           <>
             {sortedRecords.length === 0 ? (
-              <div className="empty-state">No records found. Create a new record to get started.</div>
+              <div className="empty-state">No records found.</div>
             ) : (
               <div className="table-scroll-container">
                 <table className="data-table">
@@ -554,7 +617,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
                   <tbody>
                     {sortedRecords.map((record, index) => (
                       <tr
-                        key={record.caseNo || `row-${index}`}
+                        key={record.recordId || `row-${index}`}
                         onClick={() => handleRowClick(record)}
                         className="clickable-row"
                         style={{ cursor: 'pointer' }}
@@ -574,20 +637,14 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         )}
       </div>
 
-      <AddRecordComponent
-        isOpen={showAddModal}
-        onClose={handleCloseModal}
-        onRecordAdded={handleRecordAdded}
-        type={viewType}
-      />
-
       <ViewStudentRecordsComponent
         isOpen={showStudentModal}
         onClose={handleCloseStudentModal}
         student={selectedStudent}
         type={viewType}
-        recordType="case"
+        recordType="medical"
       />
+
       <div className="footer">
         <div className="footer-header"><FaShieldAlt /> DATA PRIVACY CLOSURE</div>
         <div className="footer-text">
@@ -598,4 +655,4 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   );
 };
 
-export default OPDRecords;
+export default AdminINFRecords;
