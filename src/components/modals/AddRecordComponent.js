@@ -7,6 +7,8 @@ import GCOForm from '../forms/GCOForm';
 import INFForm from '../forms/INFForm';
 import SuccessOverlay from '../common/SuccessOverlay';
 
+const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL;
+
 const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
   const [formData, setFormData] = useState({
     studentId: '',
@@ -166,7 +168,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/case-records', {
+      const response = await fetch(`${API_BASE_URL}/api/case-records`, {
         method: 'POST',
         body: formDataToSend
       });
@@ -253,7 +255,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/counseling-records', {
+      const response = await fetch(`${API_BASE_URL}api/counseling-records`, {
         method: 'POST',
         body: formDataToSend
       });
@@ -361,7 +363,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         console.log('No file classifications to send');
       }
 
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/medical-records', {
+      const response = await fetch(`${API_BASE_URL}api/medical-records`, {
         method: 'POST',
         body: formDataToSend
       });

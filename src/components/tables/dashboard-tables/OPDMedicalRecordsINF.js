@@ -1,78 +1,106 @@
-// OPDPsychologicalRecordsINF.js - Updated with clickable rows
+// OPDMedicalRecordsINF.js
 import React, { useState, useEffect } from 'react';
 import './DashboardTables.css';
 
-const OPDPsychologicalRecordsINF = ({ userType = 'default', onRowClick }) => {
+const OPDMedicalRecordsINF = ({ userType = 'default', onRowClick }) => {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetchPsychologicalRecords();
+        fetchOPDUploadedFiles();
     }, []);
 
-    const fetchPsychologicalRecords = async () => {
+    const fetchOPDUploadedFiles = async () => {
         try {
             const baseUrl = process.env.REACT_APP_NODE_SERVER_URL;
-            const apiUrl = `${baseUrl}api/infirmary/medical-records`;
+            const apiUrl = `${baseUrl}api/medical-records`;
             const response = await fetch(apiUrl);
             const data = await response.json();
 
             if (data.success) {
-                // Filter for psychological records and limit to 10 most recent
-                const psychologicalRecords = data.records
-                    .filter(record => record.psychologicalStatus === 'PSYCHOLOGICAL')
+                // Extract all files uploaded by OPD from all records
+                const opdFiles = [];
+                
+                data.records.forEach(record => {
+                    if (record.attachments && Array.isArray(record.attachments)) {
+                        record.attachments.forEach(file => {
+                            // Check if file was uploaded by OPD
+                            if (file.uploadedBy === 'OPD') {
+                                opdFiles.push({
+                                    recordId: record.recordId,
+                                    name: record.name,
+                                    fileName: file.originalname,
+                                    uploadedDate: file.uploadDate || record.date,
+                                    fileData: file,
+                                    studentId: record.id,
+                                    fullRecord: record
+                                });
+                            }
+                        });
+                    }
+                });
+
+                // Sort by upload date (most recent first) and limit to 10
+                const recentOPDFiles = opdFiles
+                    .sort((a, b) => new Date(b.uploadedDate) - new Date(a.uploadedDate))
                     .slice(0, 10);
-                setRecords(psychologicalRecords);
+                
+                setRecords(recentOPDFiles);
             } else {
                 setError('Failed to fetch records');
             }
         } catch (err) {
-            setError('Error fetching psychological records');
+            setError('Error fetching OPD uploaded files');
             console.error('Error:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Handle row click
-    const handleRowClick = (record) => {
+    const handleRowClick = (fileRecord) => {
         if (onRowClick) {
-            onRowClick(record, 'INF');
+            // Pass the full medical record and file info
+            onRowClick({
+                ...fileRecord.fullRecord,
+                selectedFile: fileRecord.fileData
+            }, 'INF');
         }
     };
 
-    if (loading) return <div className="table-loading">Loading psychological records...</div>;
+    if (loading) return <div className="table-loading">Loading OPD uploaded files...</div>;
     if (error) return <div className="table-error">Error: {error}</div>;
 
     return (
         <div className={`dashboard-table-container ${userType.toLowerCase()}`}>
-            <h3>Psychological Records (INF) - Recent 10</h3>
+            <h3>Recent OPD Uploaded Files - Recent 10</h3>
             <div className="table-wrapper">
                 <table className="dashboard-table">
                     <thead>
                         <tr>
-                            <th>Record Number</th>
+                            <th>Record ID</th>
                             <th>Name</th>
-                            <th>Date</th>
+                            <th>File Name</th>
+                            <th>Upload Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         {records.length > 0 ? (
-                            records.map(record => (
+                            records.map((fileRecord, index) => (
                                 <tr 
-                                    key={record.recordId}
+                                    key={`${fileRecord.recordId}-${fileRecord.fileName}-${index}`}
                                     className="clickable-row"
-                                    onClick={() => handleRowClick(record)}
+                                    onClick={() => handleRowClick(fileRecord)}
                                 >
-                                    <td>{record.recordId}</td>
-                                    <td>{record.name}</td>
-                                    <td>{record.date}</td>
+                                    <td>{fileRecord.recordId}</td>
+                                    <td>{fileRecord.name}</td>
+                                    <td>{fileRecord.fileName}</td>
+                                    <td>{new Date(fileRecord.uploadedDate).toLocaleDateString()}</td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="3" className="no-data">No psychological records found</td>
+                                <td colSpan="4" className="no-data">No files uploaded by OPD found</td>
                             </tr>
                         )}
                     </tbody>
@@ -82,4 +110,4 @@ const OPDPsychologicalRecordsINF = ({ userType = 'default', onRowClick }) => {
     );
 };
 
-export default OPDPsychologicalRecordsINF;
+export default OPDMedicalRecordsINF;

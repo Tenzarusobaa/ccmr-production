@@ -1,8 +1,8 @@
-// OPDPsychologicalRecordsINF.js - Updated with userType prop
+// OPDPsychologicalRecordsINF.js
 import React, { useState, useEffect } from 'react';
 import './DashboardTables.css';
 
-const OPDPsychologicalRecordsINF = ({ userType = 'default' }) => {
+const OPDPsychologicalRecordsINF = ({ userType = 'default', onRowClick }) => {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -19,10 +19,13 @@ const OPDPsychologicalRecordsINF = ({ userType = 'default' }) => {
             const data = await response.json();
 
             if (data.success) {
-                // Filter for psychological records and limit to 10 most recent
+                // FIXED: Filter for psychological records (mr_is_psychological = 'Yes')
+                // Limit to 10 most recent
                 const psychologicalRecords = data.records
-                    .filter(record => record.psychologicalStatus === 'PSYCHOLOGICAL')
+                    .filter(record => record.isPsychological === 'Yes')
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
                     .slice(0, 10);
+                
                 setRecords(psychologicalRecords);
             } else {
                 setError('Failed to fetch records');
@@ -32,6 +35,12 @@ const OPDPsychologicalRecordsINF = ({ userType = 'default' }) => {
             console.error('Error:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRowClick = (record) => {
+        if (onRowClick) {
+            onRowClick(record, 'INF');
         }
     };
 
@@ -53,7 +62,11 @@ const OPDPsychologicalRecordsINF = ({ userType = 'default' }) => {
                     <tbody>
                         {records.length > 0 ? (
                             records.map(record => (
-                                <tr key={record.recordId}>
+                                <tr 
+                                    key={record.recordId}
+                                    className="clickable-row"
+                                    onClick={() => handleRowClick(record)}
+                                >
                                     <td>{record.recordId}</td>
                                     <td>{record.name}</td>
                                     <td>{record.date}</td>

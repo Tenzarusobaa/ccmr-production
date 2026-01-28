@@ -33,7 +33,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
     medicalDetails: '',
     isPsychological: '',
     isMedical: '',
-    referredToGCO: 'No'
+    referredToGCO: 'No',
+    // ADD uploaderType field:
+    uploaderType: type // Set uploaderType to the current user type
   });
 
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -135,7 +137,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
         medicalDetails: record.medicalDetails || record.mr_medical_details || '',
         isPsychological: record.isPsychological || record.mr_is_psychological || '',
         isMedical: record.isMedical || record.mr_is_medical || '',
-        referredToGCO: record.referred || record.mr_referred || 'No'
+        referredToGCO: record.referred || record.mr_referred,
+        // Set uploaderType to current user type
+        uploaderType: type
       }));
 
       // Set existing files from record
@@ -145,7 +149,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       setFilesToDelete([]); // Reset files to delete
       setFileClassifications([]); // Reset file classifications
     }
-  }, [record]);
+  }, [record, type]);
 
   if (!isOpen || !record) return null;
 
@@ -262,7 +266,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('strand', formData.strand);
       formDataToSend.append('gradeLevel', formData.gradeLevel);
       formDataToSend.append('section', formData.section);
-      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester); // ADDED THIS LINE
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester);
       formDataToSend.append('violationLevel', formData.violationLevel);
       formDataToSend.append('status', formData.status);
       formDataToSend.append('description', formData.generalDescription);
@@ -482,6 +486,8 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('referredToGCO', formData.referredToGCO);
       formDataToSend.append('isPsychological', formData.isPsychological);
       formDataToSend.append('isMedical', formData.isMedical);
+      // CRITICAL: Add uploaderType to the form data
+      formDataToSend.append('uploaderType', formData.uploaderType || type);
 
       // Append existing files that are not marked for deletion
       const remainingExistingFiles = existingFiles.filter(file =>
@@ -509,6 +515,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
       const recordId = record.mr_medical_id || record.recordId;
       console.log('Updating INF record ID:', recordId);
+      console.log('Uploader type being sent:', formData.uploaderType || type);
 
       const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
       const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
@@ -594,7 +601,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       onFileClassifications: handleFileClassifications,
       isEditMode: true,
       // FIXED: OPD users should be able to edit INF records, so only disable for GCO records
-      isDisabled: userType === "OPD" && recordType === "GCO"
+      isDisabled: userType === "OPD" && recordType === "GCO",
+      // PASS THE UPLOADER TYPE TO INFFORM
+      uploaderType: formData.uploaderType || userType
     };
 
     switch (recordType) {

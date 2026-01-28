@@ -19,7 +19,9 @@ const INFForm = ({
   onRemoveNewFile,
   onFileClassifications,
   isEditMode = false,
-  isDisabled = false
+  isDisabled = false,
+  // ADD THIS NEW PROP:
+  uploaderType = 'INF' // Pass the current user type
 }) => {
   const fileInputRef = useRef(null);
   const [validationError, setValidationError] = useState('');
@@ -314,7 +316,7 @@ const INFForm = ({
             <label htmlFor="referredToGCO">Refer to GCO? *</label>
             <select 
               id="referredToGCO" 
-              name="referredToGCO"
+              name="referredToGCO" // FIXED: Ensure this matches the formData field name
               value={formData.referredToGCO} 
               onChange={onInputChange}
               required
