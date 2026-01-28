@@ -8,6 +8,8 @@ import ViewStudentRecordsComponent from '../../components/modals/ViewStudentReco
 import { FaFolder, FaShieldAlt, FaUser, FaFileMedical, FaStethoscope } from 'react-icons/fa';
 import FilterMedical from '../../components/buttons/FilterMedical';
 import '../OfficeRecords.css';
+import ViewRecordComponent from '../../components/modals/ViewRecordComponent';
+import EditRecordComponent from '../../components/modals/EditRecordComponent';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
@@ -36,6 +38,11 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
   const getTitle = () => {
     return "Infirmary Medical Records (Admin View)";
   };
+
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
 
   const getFilterTitle = () => {
     switch (currentFilter) {
@@ -381,13 +388,13 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
 
   const handleRowClick = (recordOrStudent) => {
     if (isSearchMode) {
-      // In search mode, we might have student objects or record objects
+      // In search mode, we have aggregated student objects
       if (recordOrStudent.medicalCount !== undefined) {
         // This is a student object from aggregated view
         setSelectedStudent(recordOrStudent);
         setShowStudentModal(true);
       } else {
-        // This is a record object from search results
+        // This is a record object (shouldn't happen in search mode now)
         setSelectedStudent({
           id: recordOrStudent.id,
           name: recordOrStudent.name,
@@ -399,14 +406,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
       }
     } else {
       // In default mode, we have individual record objects
-      setSelectedStudent({
-        id: recordOrStudent.id,
-        name: recordOrStudent.name,
-        strand: recordOrStudent.strand,
-        gradeLevel: recordOrStudent.gradeLevel,
-        section: recordOrStudent.section
-      });
-      setShowStudentModal(true);
+      // Open ViewRecordComponent directly with the record
+      setSelectedRecord(recordOrStudent);
+      setShowViewModal(true);
     }
   };
 
@@ -636,6 +638,22 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
           </>
         )}
       </div>
+
+      <ViewRecordComponent
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedRecord(null);
+        }}
+        onEdit={(record) => {
+          setSelectedRecord(null);
+          setShowViewModal(false);
+          setEditRecordData(record);
+          setShowEditModal(true);
+        }}
+        record={selectedRecord}
+        type={viewType}
+      />
 
       <ViewStudentRecordsComponent
         isOpen={showStudentModal}

@@ -8,6 +8,9 @@ import DataTable from '../../components/tables/DataTable';
 import ViewStudentRecordsComponent from '../../components/modals/ViewStudentRecordsComponent';
 import { FaFolder, FaShieldAlt } from 'react-icons/fa';
 import '../OfficeRecords.css';
+import ViewRecordComponent from '../../components/modals/ViewRecordComponent';
+import EditRecordComponent from '../../components/modals/EditRecordComponent';
+
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
@@ -16,7 +19,7 @@ const AdminOPDRecordsGCO = ({ userData, onLogout, onNavItemClick, onExitViewAs }
   const name = userData?.name || localStorage.getItem('userName') || 'User';
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
   const type = userData?.type || localStorage.getItem('type') || 'Administrator';
-  
+
   // Force viewType to be Administrator for admin view pages
   const viewType = "Administrator";
   const recordType = "GCO"; // This is the key difference - using GCO endpoints
@@ -30,6 +33,11 @@ const AdminOPDRecordsGCO = ({ userData, onLogout, onNavItemClick, onExitViewAs }
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
 
   // Use GCO styling for admin view
   const getOfficeClass = () => "office-records-default";
@@ -312,15 +320,9 @@ const AdminOPDRecordsGCO = ({ userData, onLogout, onNavItemClick, onExitViewAs }
       setShowStudentModal(true);
     } else {
       // In default mode, we have individual record objects
-      // Extract student info from the record
-      setSelectedStudent({
-        id: recordOrStudent.id,
-        name: recordOrStudent.name,
-        strand: recordOrStudent.strand,
-        gradeLevel: recordOrStudent.gradeLevel,
-        section: recordOrStudent.section
-      });
-      setShowStudentModal(true);
+      // Open ViewRecordComponent directly with the record
+      setSelectedRecord(recordOrStudent);
+      setShowViewModal(true); // We'll need to add this state
     }
   };
 
@@ -424,7 +426,7 @@ const AdminOPDRecordsGCO = ({ userData, onLogout, onNavItemClick, onExitViewAs }
           <>
             {sortedStudents.length === 0 ? (
               <div className="empty-state">
-                No students found {searchQuery && `for "${searchQuery}"`}. 
+                No students found {searchQuery && `for "${searchQuery}"`}.
                 {searchQuery ? 'Try a different search term.' : 'No referred case records available.'}
               </div>
             ) : (
@@ -532,6 +534,38 @@ const AdminOPDRecordsGCO = ({ userData, onLogout, onNavItemClick, onExitViewAs }
           </>
         )}
       </div>
+
+      <ViewRecordComponent
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedRecord(null);
+        }}
+        onEdit={(record) => {
+          setSelectedRecord(null);
+          setShowViewModal(false);
+          setEditRecordData(record);
+          setShowEditModal(true);
+        }}
+        record={selectedRecord}
+        type={viewType}
+      />
+
+      <EditRecordComponent
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        onRecordUpdated={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        type={viewType}
+        record={editRecordData}
+      />
 
       <ViewStudentRecordsComponent
         isOpen={showStudentModal}

@@ -8,6 +8,8 @@ import DataTable from '../../components/tables/DataTable';
 import ViewStudentRecordsComponent from '../../components/modals/ViewStudentRecordsComponent';
 import { FaFolder, FaShieldAlt, FaUser, FaFileMedical, FaStethoscope } from 'react-icons/fa';
 import '../OfficeRecords.css';
+import ViewRecordComponent from '../../components/modals/ViewRecordComponent';
+import EditRecordComponent from '../../components/modals/EditRecordComponent';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
@@ -15,7 +17,7 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
   const name = userData?.name || localStorage.getItem('userName') || 'User';
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
   const type = userData?.type || localStorage.getItem('type') || 'Administrator';
-  
+
   // Force viewType to be Administrator for admin view pages
   const viewType = "Administrator";
 
@@ -37,6 +39,11 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
     return "Infirmary Medical Records (Admin View)";
   };
 
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
+
   const getFilterTitle = () => {
     switch (currentFilter) {
       case 'ALL': return "All Records";
@@ -49,9 +56,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
 
   // Student columns for search results (aggregated view)
   const studentColumns = [
-    { 
-      key: 'id', 
-      label: 'ID No.', 
+    {
+      key: 'id',
+      label: 'ID No.',
       sortable: true,
       render: (value, row) => (
         <div className="student-id-cell">
@@ -64,9 +71,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
     { key: 'strand', label: 'Strand', sortable: true },
     { key: 'gradeLevel', label: 'Grade Level', sortable: true },
     { key: 'section', label: 'Section', sortable: true },
-    { 
-      key: 'medicalCount', 
-      label: 'Record Count', 
+    {
+      key: 'medicalCount',
+      label: 'Record Count',
       sortable: true,
       render: (value) => (
         <span className={`medical-count-badge ${value > 0 ? 'has-records' : 'no-records'}`}>
@@ -75,15 +82,15 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
         </span>
       )
     },
-    { 
-      key: 'recordTypes', 
-      label: 'Record Types', 
+    {
+      key: 'recordTypes',
+      label: 'Record Types',
       sortable: false,
       render: (_, row) => {
         const types = [];
         if (row.hasMedical && row.hasMedical.includes('Yes')) types.push('Medical');
         if (row.hasPsychological && row.hasPsychological.includes('Yes')) types.push('Psychological');
-        
+
         return (
           <div className="record-types">
             {types.map(type => (
@@ -95,9 +102,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
         );
       }
     },
-    { 
-      key: 'latestStatus', 
-      label: 'Latest Status', 
+    {
+      key: 'latestStatus',
+      label: 'Latest Status',
       sortable: true,
       render: (value) => (
         <span className={`status-badge status-${value?.toLowerCase() || 'unknown'}`}>
@@ -117,9 +124,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
     { key: 'section', label: 'Section', sortable: true },
     { key: 'schoolYearSemester', label: 'School Year & Semester', sortable: true },
     { key: 'subject', label: 'Subject', sortable: true },
-    { 
-      key: 'status', 
-      label: 'Status', 
+    {
+      key: 'status',
+      label: 'Status',
       sortable: true,
       render: (value) => (
         <span className={`status-badge status-${value?.toLowerCase() || 'unknown'}`}>
@@ -127,9 +134,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
         </span>
       )
     },
-    { 
-      key: 'type', 
-      label: 'Type', 
+    {
+      key: 'type',
+      label: 'Type',
       sortable: true,
       render: (_, row) => {
         const types = [];
@@ -208,7 +215,7 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
         if (isNaN(aNum) && isNaN(bNum)) return 0;
         if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
         if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
-        
+
         return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
       }
 
@@ -229,9 +236,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
     const currentIndex = filters.indexOf(currentFilter);
     const nextIndex = (currentIndex + 1) % filters.length;
     const newFilter = filters[nextIndex];
-    
+
     setCurrentFilter(newFilter);
-    
+
     // If we're in search mode with a query, refresh search with new filter
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
@@ -254,13 +261,13 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
       setLoading(true);
       setError(null);
       setIsSearchMode(false);
-      
+
       const endpoint = `${API_BASE_URL}api/infirmary/medical-records?filter=${currentFilter}`;
-      
+
       console.log('Fetching INF records with filter:', currentFilter, 'Endpoint:', endpoint);
-      
+
       const response = await fetch(endpoint);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -291,9 +298,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
       const endpoint = `${API_BASE_URL}api/student-medical-records?filter=${currentFilter}`;
 
       console.log('Fetching INF students with filter:', currentFilter, 'Endpoint:', endpoint);
-      
+
       const response = await fetch(endpoint);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -317,7 +324,7 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
   // Handle search
   const handleSearch = async (query) => {
     setSearchQuery(query);
-    
+
     if (!query.trim()) {
       // If search is cleared, show default records view with current filter
       fetchAllRecords();
@@ -381,13 +388,13 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
 
   const handleRowClick = (recordOrStudent) => {
     if (isSearchMode) {
-      // In search mode, we might have student objects or record objects
+      // In search mode, we have aggregated student objects
       if (recordOrStudent.medicalCount !== undefined) {
         // This is a student object from aggregated view
         setSelectedStudent(recordOrStudent);
         setShowStudentModal(true);
       } else {
-        // This is a record object from search results
+        // This is a record object (shouldn't happen in search mode now)
         setSelectedStudent({
           id: recordOrStudent.id,
           name: recordOrStudent.name,
@@ -399,14 +406,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
       }
     } else {
       // In default mode, we have individual record objects
-      setSelectedStudent({
-        id: recordOrStudent.id,
-        name: recordOrStudent.name,
-        strand: recordOrStudent.strand,
-        gradeLevel: recordOrStudent.gradeLevel,
-        section: recordOrStudent.section
-      });
-      setShowStudentModal(true);
+      // Open ViewRecordComponent directly with the record
+      setSelectedRecord(recordOrStudent);
+      setShowViewModal(true);
     }
   };
 
@@ -499,9 +501,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
             <h2><FaFolder /> {getFilterTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            
+
             {!isSearchMode || !searchQuery ? (
-              <FilterMedical 
+              <FilterMedical
                 type={viewType}
                 onClick={cycleFilter}
                 currentFilter={currentFilter}
@@ -548,7 +550,7 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
                               {column.label}
                               {column.sortable && (
                                 <span className="sort-indicator">
-                                  {sortConfig && sortConfig.key === column.key 
+                                  {sortConfig && sortConfig.key === column.key
                                     ? sortConfig.direction === 'asc' ? '↑' : '↓'
                                     : '↕️'
                                   }
@@ -603,7 +605,7 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
                             {column.label}
                             {column.sortable && (
                               <span className="sort-indicator">
-                                {sortConfig && sortConfig.key === column.key 
+                                {sortConfig && sortConfig.key === column.key
                                   ? sortConfig.direction === 'asc' ? '↑' : '↓'
                                   : '↕️'
                                 }
@@ -636,6 +638,22 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
           </>
         )}
       </div>
+
+      <ViewRecordComponent
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedRecord(null);
+        }}
+        onEdit={(record) => {
+          setSelectedRecord(null);
+          setShowViewModal(false);
+          setEditRecordData(record);
+          setShowEditModal(true);
+        }}
+        record={selectedRecord}
+        type={viewType}
+      />
 
       <ViewStudentRecordsComponent
         isOpen={showStudentModal}
