@@ -43,7 +43,7 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
       setError(null);
 
       let endpoint;
-      
+
       // Apply filtering based on user type and record type
       switch (recordType) {
         case 'case':
@@ -92,29 +92,29 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
       if (data.success) {
         // Apply additional filtering for INF viewing GCO records
         let filteredRecords = data.records || [];
-        
+
         if (type === "INF" && recordType === "counseling") {
           // INF should only see psychological counseling records
-          filteredRecords = filteredRecords.filter(record => 
-            record.psychologicalCondition === "YES" || 
+          filteredRecords = filteredRecords.filter(record =>
+            record.psychologicalCondition === "YES" ||
             record.isPsychological === "Yes"
           );
         }
-        
+
         if (type === "GCO" && recordType === "case") {
           // GCO should only see referred case records
-          filteredRecords = filteredRecords.filter(record => 
+          filteredRecords = filteredRecords.filter(record =>
             record.referred === "Yes"
           );
         }
-        
+
         if (type === "GCO" && recordType === "medical") {
           // GCO should only see referred medical records
-          filteredRecords = filteredRecords.filter(record => 
+          filteredRecords = filteredRecords.filter(record =>
             record.referred === "Yes"
           );
         }
-        
+
         setRecords(filteredRecords);
       } else {
         throw new Error(data.error || 'Failed to fetch records');
@@ -242,11 +242,11 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
 
   const getRecordTitle = () => {
     switch (recordType) {
-      case 'case': 
+      case 'case':
         return type === "GCO" ? 'Referred Case Records' : 'Case Records';
-      case 'counseling': 
+      case 'counseling':
         return type === "INF" ? 'Psychological Records' : 'Counseling Sessions';
-      case 'medical': 
+      case 'medical':
         return type === "GCO" ? 'Referred Medical Records' : 'Medical Records';
       default: return 'Records';
     }
@@ -257,9 +257,9 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
       case 'case':
         return [
           { key: 'caseNo', label: 'Case No.', sortable: true },
-          { key: 'id', label: 'ID No.', sortable: true },
-          { key: 'name', label: 'Name', sortable: true },
-          { key: 'strand', label: 'Strand', sortable: true },
+          type === "GCO"
+            ? { key: 'remarks', label: 'Additional Remarks', sortable: false }
+            : { key: 'description', label: 'General Description', sortable: false },
           { key: 'violationLevel', label: 'Severity', sortable: true },
           {
             key: 'status',
@@ -277,9 +277,7 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
       case 'counseling':
         return [
           { key: 'sessionNumber', label: 'Session No.', sortable: true },
-          { key: 'id', label: 'ID No.', sortable: true },
-          { key: 'name', label: 'Name', sortable: true },
-          { key: 'strand', label: 'Strand', sortable: true },
+          // REMOVED: id, name, strand columns
           {
             key: 'status',
             label: 'Status',
@@ -290,15 +288,13 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
               </span>
             )
           },
-          { key: 'psychologicalCondition', label: 'Psychological', sortable: true },
+          { key: 'concern', label: 'General Concern', sortable: false }, // Changed from 'psychologicalCondition'
           { key: 'date', label: 'Date', sortable: true }
         ];
       case 'medical':
         return [
           { key: 'recordId', label: 'Record No.', sortable: true },
-          { key: 'id', label: 'ID No.', sortable: true },
-          { key: 'name', label: 'Name', sortable: true },
-          { key: 'strand', label: 'Strand', sortable: true },
+          // REMOVED: id, name, strand columns
           {
             key: 'status',
             label: 'Status',
@@ -309,6 +305,9 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
               </span>
             )
           },
+          type === "GCO"
+            ? { key: 'remarks', label: 'Additional Remarks', sortable: false }
+            : { key: 'medicalDetails', label: 'Medical Details', sortable: false },
           { key: 'referred', label: 'Referred to GCO', sortable: true },
           { key: 'isPsychological', label: 'Psychological', sortable: true },
           { key: 'isMedical', label: 'Medical', sortable: true },
