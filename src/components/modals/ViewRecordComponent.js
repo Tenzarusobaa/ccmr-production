@@ -49,7 +49,11 @@ const ViewRecordComponent = ({ isOpen, onClose, record, type, onEdit }) => {
 
         switch (recordType) {
             case "OPD":
-                return <OPDFormView {...commonProps} />;
+                // Pass hideFields prop for GCO users viewing OPD records
+                return <OPDFormView 
+                    {...commonProps} 
+                    hideFields={userType === "GCO" && recordType === "OPD"} 
+                />;
             case "GCO":
                 return <GCOFormView {...commonProps} />;
             case "INF":
