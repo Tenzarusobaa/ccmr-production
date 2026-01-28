@@ -74,12 +74,28 @@ const INFForm = ({
   }, [isEditMode, existingFiles]);
 
   const handleAttachmentClick = () => {
-    if (isDisabled || remainingSlots <= 0) return;
+    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
+    if (isDisabled && remainingSlots <= 0) return;
+    if (isDisabled && remainingSlots > 0) {
+      // If disabled but has slots, check if it's GCO user
+      if (primaryColor === "#00451D" && isEditMode) {
+        // GCO user cannot edit INF records
+        alert('GCO users cannot edit INF records');
+        return;
+      }
+    }
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
-    if (isDisabled) return;
+    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
+    if (isDisabled) {
+      if (primaryColor === "#00451D" && isEditMode) {
+        // GCO user cannot edit INF records
+        alert('GCO users cannot edit INF records');
+        return;
+      }
+    }
     
     const files = Array.from(e.target.files);
     
@@ -130,7 +146,12 @@ const INFForm = ({
   };
 
   const handleRemoveNewFile = (index) => {
-    if (isDisabled) return;
+    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
+    if (isDisabled && primaryColor === "#00451D" && isEditMode) {
+      // GCO user cannot edit INF records
+      alert('GCO users cannot edit INF records');
+      return;
+    }
     
     const fileToRemove = selectedFiles[index];
     const newFiles = [...selectedFiles];
@@ -147,6 +168,13 @@ const INFForm = ({
   };
 
   const handleFileClassificationChange = (fileName, field, value) => {
+    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
+    if (isDisabled && primaryColor === "#00451D" && isEditMode) {
+      // GCO user cannot edit INF records
+      alert('GCO users cannot edit INF records');
+      return;
+    }
+    
     setFileClassifications(prev => ({
       ...prev,
       [fileName]: {
@@ -186,7 +214,7 @@ const INFForm = ({
                 isLoading={isLoading}
                 placeholder="Enter ID Number"
                 required={true}
-                disabled={isDisabled}
+                disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
               />
             </div>
             <div className="form-group">
@@ -197,7 +225,7 @@ const INFForm = ({
                 name="studentName"
                 value={formData.studentName} 
                 onChange={onInputChange}
-                disabled={true || isDisabled}
+                disabled={true}
               />
             </div>
           </div>
@@ -210,7 +238,7 @@ const INFForm = ({
                 name="strand"
                 value={formData.strand} 
                 onChange={onInputChange}
-                disabled={true || isDisabled}
+                disabled={true}
               />
             </div>
             <div className="form-group">
@@ -221,7 +249,7 @@ const INFForm = ({
                 name="gradeLevel"
                 value={formData.gradeLevel} 
                 onChange={onInputChange}
-                disabled={true || isDisabled}
+                disabled={true}
               />
             </div>
             <div className="form-group">
@@ -232,7 +260,7 @@ const INFForm = ({
                 name="section"
                 value={formData.section} 
                 onChange={onInputChange}
-                disabled={true || isDisabled}
+                disabled={true}
               />
             </div>
           </div>
@@ -245,7 +273,7 @@ const INFForm = ({
                 name="schoolYearSemester"
                 value={formData.schoolYearSemester || formData.schoolYear || ''} 
                 onChange={onInputChange}
-                disabled={true || isDisabled}
+                disabled={true}
               />
             </div>
           </div>
@@ -263,7 +291,7 @@ const INFForm = ({
               onChange={onInputChange}
               placeholder="Enter subject or concern"
               required
-              disabled={isDisabled}
+              disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
             />
           </div>
           <div className="form-group">
@@ -274,7 +302,7 @@ const INFForm = ({
               value={formData.status} 
               onChange={onInputChange}
               required
-              disabled={isDisabled}
+              disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
             >
               <option value="">- Select Status -</option>
               <option value="Ongoing">Ongoing</option>
@@ -290,7 +318,7 @@ const INFForm = ({
               value={formData.referredToGCO} 
               onChange={onInputChange}
               required
-              disabled={isDisabled}
+              disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>
@@ -305,7 +333,7 @@ const INFForm = ({
                 value={formData.isPsychological} 
                 onChange={onInputChange}
                 required
-                disabled={isDisabled}
+                disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -320,7 +348,7 @@ const INFForm = ({
                 value={formData.isMedical} 
                 onChange={onInputChange}
                 required
-                disabled={isDisabled}
+                disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -350,7 +378,7 @@ const INFForm = ({
             rows="4"
             placeholder="Enter detailed medical/psychological information..."
             required
-            disabled={isDisabled}
+            disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
           ></textarea>
         </div>
         <div className="form-group">
@@ -362,7 +390,7 @@ const INFForm = ({
             onChange={onInputChange}
             rows="2"
             placeholder="Enter any additional remarks..."
-            disabled={isDisabled}
+            disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
           ></textarea>
         </div>
       </div>
@@ -416,7 +444,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isMedical || false}
                         onChange={(e) => handleFileClassificationChange(fileName, 'isMedical', e.target.checked)}
-                        disabled={isDisabled}
+                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
                       />
                       <span>Medical</span>
                     </label>
@@ -426,7 +454,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isPsychological || false}
                         onChange={(e) => handleFileClassificationChange(fileName, 'isPsychological', e.target.checked)}
-                        disabled={isDisabled}
+                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
                       />
                       <span>Psychological</span>
                     </label>
@@ -437,7 +465,7 @@ const INFForm = ({
                     className="remove-file-btn"
                     onClick={() => onRemoveExistingFile(file.filename)}
                     title="Remove file"
-                    disabled={isDisabled}
+                    disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
                   >
                     ×
                   </button>
@@ -447,7 +475,7 @@ const INFForm = ({
           </div>
         )}
 
-        {remainingSlots > 0 && !isDisabled && (
+        {remainingSlots > 0 && !(isDisabled && primaryColor === "#00451D") && (
           <div 
             className="attachment-box" 
             style={{ borderColor: primaryColor }}
@@ -486,7 +514,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isMedical || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isMedical', e.target.checked)}
-                        disabled={isDisabled}
+                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
                       />
                       <span>Medical</span>
                     </label>
@@ -496,7 +524,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isPsychological || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isPsychological', e.target.checked)}
-                        disabled={isDisabled}
+                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
                       />
                       <span>Psychological</span>
                     </label>
@@ -507,7 +535,7 @@ const INFForm = ({
                     className="remove-file-btn"
                     onClick={() => handleRemoveNewFile(index)}
                     title="Remove file"
-                    disabled={isDisabled}
+                    disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
                   >
                     ×
                   </button>

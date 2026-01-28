@@ -10,6 +10,8 @@ import AddRecordComponent from '../components/modals/AddRecordComponent';
 import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
 import { FaFolder, FaShieldAlt, FaUser, FaFileMedical, FaStethoscope } from 'react-icons/fa';
 import './OfficeRecords.css';
+import ViewRecordComponent from '../components/modals/ViewRecordComponent';
+import EditRecordComponent from '../components/modals/EditRecordComponent';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
@@ -30,6 +32,10 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentFilter, setCurrentFilter] = useState('ALL');
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -70,9 +76,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   // Student columns for search results (aggregated view)
   const studentColumns = [
-    { 
-      key: 'id', 
-      label: 'ID No.', 
+    {
+      key: 'id',
+      label: 'ID No.',
       sortable: true,
       render: (value, row) => (
         <div className="student-id-cell">
@@ -85,9 +91,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     { key: 'strand', label: 'Strand', sortable: true },
     { key: 'gradeLevel', label: 'Grade Level', sortable: true },
     { key: 'section', label: 'Section', sortable: true },
-    { 
-      key: 'medicalCount', 
-      label: 'Record Count', 
+    {
+      key: 'medicalCount',
+      label: 'Record Count',
       sortable: true,
       render: (value) => (
         <span className={`medical-count-badge ${value > 0 ? 'has-records' : 'no-records'}`}>
@@ -96,15 +102,15 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         </span>
       )
     },
-    { 
-      key: 'recordTypes', 
-      label: 'Record Types', 
+    {
+      key: 'recordTypes',
+      label: 'Record Types',
       sortable: false,
       render: (_, row) => {
         const types = [];
         if (row.hasMedical && row.hasMedical.includes('Yes')) types.push('Medical');
         if (row.hasPsychological && row.hasPsychological.includes('Yes')) types.push('Psychological');
-        
+
         return (
           <div className="record-types">
             {types.map(type => (
@@ -116,9 +122,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         );
       }
     },
-    { 
-      key: 'latestStatus', 
-      label: 'Latest Status', 
+    {
+      key: 'latestStatus',
+      label: 'Latest Status',
       sortable: true,
       render: (value) => (
         <span className={`status-badge status-${value?.toLowerCase() || 'unknown'}`}>
@@ -138,9 +144,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     { key: 'section', label: 'Section', sortable: true },
     { key: 'schoolYearSemester', label: 'School Year & Semester', sortable: true },
     { key: 'subject', label: 'Subject', sortable: true },
-    { 
-      key: 'status', 
-      label: 'Status', 
+    {
+      key: 'status',
+      label: 'Status',
       sortable: true,
       render: (value) => (
         <span className={`status-badge status-${value?.toLowerCase() || 'unknown'}`}>
@@ -148,9 +154,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         </span>
       )
     },
-    { 
-      key: 'type', 
-      label: 'Type', 
+    {
+      key: 'type',
+      label: 'Type',
       sortable: true,
       render: (_, row) => {
         const types = [];
@@ -229,7 +235,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         if (isNaN(aNum) && isNaN(bNum)) return 0;
         if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
         if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
-        
+
         return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
       }
 
@@ -250,9 +256,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     const currentIndex = filters.indexOf(currentFilter);
     const nextIndex = (currentIndex + 1) % filters.length;
     const newFilter = filters[nextIndex];
-    
+
     setCurrentFilter(newFilter);
-    
+
     // If we're in search mode with a query, refresh search with new filter
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
@@ -275,7 +281,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setLoading(true);
       setError(null);
       setIsSearchMode(false);
-      
+
       let endpoint;
       if (viewType === "GCO") {
         // GCO should only see referred medical records
@@ -286,9 +292,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
 
       console.log('Fetching records with viewType:', viewType, 'filter:', currentFilter, 'Endpoint:', endpoint);
-      
+
       const response = await fetch(endpoint);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -326,9 +332,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
 
       console.log('Fetching students with viewType:', viewType, 'filter:', currentFilter, 'Endpoint:', endpoint);
-      
+
       const response = await fetch(endpoint);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -352,7 +358,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   // Handle search - UPDATED for GCO view
   const handleSearch = async (query) => {
     setSearchQuery(query);
-    
+
     if (!query.trim()) {
       // If search is cleared, show default records view
       fetchAllRecords();
@@ -457,14 +463,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
     } else {
       // In default mode, we have individual record objects
-      setSelectedStudent({
-        id: recordOrStudent.id,
-        name: recordOrStudent.name,
-        strand: recordOrStudent.strand,
-        gradeLevel: recordOrStudent.gradeLevel,
-        section: recordOrStudent.section
-      });
-      setShowStudentModal(true);
+      // Open ViewRecordComponent directly with the record
+      setSelectedRecord(recordOrStudent);
+      setShowViewModal(true);
     }
   };
 
@@ -481,7 +482,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onNavItemClick={onNavItemClick}
         onExitViewAs={onExitViewAs}
       />
-      
+
       {/* View As Banner for Administrator */}
       {type === "Administrator" && viewType !== "Administrator" && (
         <div className="view-as-banner">
@@ -489,7 +490,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             <span className="view-as-text">
               You are viewing as: <strong>{viewType}</strong>
             </span>
-            <button 
+            <button
               onClick={onExitViewAs}
               className="exit-view-as-btn"
             >
@@ -514,9 +515,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
             {viewType === "INF" && type === "INF" && (
               <AddButton onClick={handleAddRecord} type={viewType} />
             )}
-            
+
             {showFilterButton && (
-              <FilterMedical 
+              <FilterMedical
                 type={viewType}
                 onClick={cycleFilter}
                 currentFilter={currentFilter}
@@ -570,7 +571,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
                             {column.label}
                             {column.sortable && (
                               <span className="sort-indicator">
-                                {sortConfig && sortConfig.key === column.key 
+                                {sortConfig && sortConfig.key === column.key
                                   ? sortConfig.direction === 'asc' ? '↑' : '↓'
                                   : '↕️'
                                 }
@@ -609,6 +610,38 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onClose={handleCloseModal}
         onRecordAdded={handleRecordAdded}
         type={viewType}
+      />
+
+      <ViewRecordComponent
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedRecord(null);
+        }}
+        onEdit={(record) => {
+          setSelectedRecord(null);
+          setShowViewModal(false);
+          setEditRecordData(record);
+          setShowEditModal(true);
+        }}
+        record={selectedRecord}
+        type={viewType}
+      />
+
+      <EditRecordComponent
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        onRecordUpdated={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        type={viewType}
+        record={editRecordData}
       />
 
       <ViewStudentRecordsComponent

@@ -9,6 +9,8 @@ import AddRecordComponent from '../components/modals/AddRecordComponent';
 import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
 import { FaFolder, FaShieldAlt, FaUser, FaComments } from 'react-icons/fa';
 import './OfficeRecords.css';
+import ViewRecordComponent from '../components/modals/ViewRecordComponent';
+import EditRecordComponent from '../components/modals/EditRecordComponent';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
@@ -28,6 +30,10 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -569,6 +575,38 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onClose={handleCloseModal}
         onRecordAdded={handleRecordAdded}
         type={viewType}
+      />
+
+      <ViewRecordComponent
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedRecord(null);
+        }}
+        onEdit={(record) => {
+          setSelectedRecord(null);
+          setShowViewModal(false);
+          setEditRecordData(record);
+          setShowEditModal(true);
+        }}
+        record={selectedRecord}
+        type={viewType}
+      />
+
+      <EditRecordComponent
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        onRecordUpdated={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        type={viewType}
+        record={editRecordData}
       />
 
       <ViewStudentRecordsComponent

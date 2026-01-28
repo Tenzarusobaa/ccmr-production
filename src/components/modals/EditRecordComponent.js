@@ -434,120 +434,121 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       setIsSubmitting(false);
     }
   };
-const handleUpdateINFRecord = async () => {
-  // Validate required fields for INF
-  if (!formData.studentId || !formData.studentName) {
-    alert('Please select a student by entering a valid ID number');
-    return;
-  }
 
-  if (!formData.subject || !formData.status) {
-    alert('Please fill in subject and status');
-    return;
-  }
-
-  if (!formData.medicalDetails) {
-    alert('Please provide medical details');
-    return;
-  }
-
-  if (!formData.isPsychological || !formData.isMedical) {
-    alert('Please specify if this is a psychological or medical record');
-    return;
-  }
-
-  // Check if both are set to "No"
-  if (formData.isPsychological === 'No' && formData.isMedical === 'No') {
-    alert('Record cannot be neither medical nor psychological');
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const formDataToSend = new FormData();
-
-    // Append all form data
-    formDataToSend.append('studentId', formData.studentId);
-    formDataToSend.append('studentName', formData.studentName);
-    formDataToSend.append('strand', formData.strand);
-    formDataToSend.append('gradeLevel', formData.gradeLevel);
-    formDataToSend.append('section', formData.section);
-    formDataToSend.append('schoolYearSemester', formData.schoolYearSemester || '');
-    formDataToSend.append('subject', formData.subject);
-    formDataToSend.append('status', formData.status);
-    formDataToSend.append('medicalDetails', formData.medicalDetails);
-    formDataToSend.append('remarks', formData.additionalRemarks || '');
-    formDataToSend.append('referredToGCO', formData.referredToGCO);
-    formDataToSend.append('isPsychological', formData.isPsychological);
-    formDataToSend.append('isMedical', formData.isMedical);
-
-    // Append existing files that are not marked for deletion
-    const remainingExistingFiles = existingFiles.filter(file =>
-      !filesToDelete.includes(file.filename)
-    );
-    
-    if (remainingExistingFiles.length > 0) {
-      formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
+  const handleUpdateINFRecord = async () => {
+    // Validate required fields for INF
+    if (!formData.studentId || !formData.studentName) {
+      alert('Please select a student by entering a valid ID number');
+      return;
     }
 
-    // Append files to delete
-    filesToDelete.forEach(filename => {
-      formDataToSend.append('filesToDelete', filename);
-    });
-
-    // Append new files (multiple files allowed for INF)
-    selectedFiles.forEach(file => {
-      formDataToSend.append('attachments', file);
-    });
-
-    // Append file classifications for new files
-    if (fileClassifications && fileClassifications.length > 0) {
-      formDataToSend.append('fileClassifications', JSON.stringify(fileClassifications));
+    if (!formData.subject || !formData.status) {
+      alert('Please fill in subject and status');
+      return;
     }
 
-    const recordId = record.mr_medical_id || record.recordId;
-    console.log('Updating INF record ID:', recordId);
-
-    const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
-    const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
-      method: 'PUT',
-      body: formDataToSend,
-    });
-
-    const result = await response.json();
-    console.log('Update response:', result);
-
-    if (result.success) {
-      const updatedRecord = {
-        ...record,
-        mr_student_id: formData.studentId,
-        mr_student_name: formData.studentName,
-        mr_student_strand: formData.strand,
-        mr_grade_level: formData.gradeLevel,
-        mr_section: formData.section,
-        mr_school_year_semester: formData.schoolYearSemester,
-        mr_subject: formData.subject,
-        mr_status: formData.status,
-        mr_medical_details: formData.medicalDetails,
-        mr_additional_remarks: formData.additionalRemarks,
-        mr_referred: formData.referredToGCO,
-        mr_is_psychological: formData.isPsychological,
-        mr_is_medical: formData.isMedical,
-      };
-
-      setLastUpdatedRecord(updatedRecord);
-      setShowSuccess(true);
-    } else {
-      throw new Error(result.message || result.error || 'Failed to update record');
+    if (!formData.medicalDetails) {
+      alert('Please provide medical details');
+      return;
     }
-  } catch (error) {
-    console.error('Error updating medical record:', error);
-    alert(`Error updating record: ${error.message}`);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    if (!formData.isPsychological || !formData.isMedical) {
+      alert('Please specify if this is a psychological or medical record');
+      return;
+    }
+
+    // Check if both are set to "No"
+    if (formData.isPsychological === 'No' && formData.isMedical === 'No') {
+      alert('Record cannot be neither medical nor psychological');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formDataToSend = new FormData();
+
+      // Append all form data
+      formDataToSend.append('studentId', formData.studentId);
+      formDataToSend.append('studentName', formData.studentName);
+      formDataToSend.append('strand', formData.strand);
+      formDataToSend.append('gradeLevel', formData.gradeLevel);
+      formDataToSend.append('section', formData.section);
+      formDataToSend.append('schoolYearSemester', formData.schoolYearSemester || '');
+      formDataToSend.append('subject', formData.subject);
+      formDataToSend.append('status', formData.status);
+      formDataToSend.append('medicalDetails', formData.medicalDetails);
+      formDataToSend.append('remarks', formData.additionalRemarks || '');
+      formDataToSend.append('referredToGCO', formData.referredToGCO);
+      formDataToSend.append('isPsychological', formData.isPsychological);
+      formDataToSend.append('isMedical', formData.isMedical);
+
+      // Append existing files that are not marked for deletion
+      const remainingExistingFiles = existingFiles.filter(file =>
+        !filesToDelete.includes(file.filename)
+      );
+      
+      if (remainingExistingFiles.length > 0) {
+        formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
+      }
+
+      // Append files to delete
+      filesToDelete.forEach(filename => {
+        formDataToSend.append('filesToDelete', filename);
+      });
+
+      // Append new files (multiple files allowed for INF)
+      selectedFiles.forEach(file => {
+        formDataToSend.append('attachments', file);
+      });
+
+      // Append file classifications for new files
+      if (fileClassifications && fileClassifications.length > 0) {
+        formDataToSend.append('fileClassifications', JSON.stringify(fileClassifications));
+      }
+
+      const recordId = record.mr_medical_id || record.recordId;
+      console.log('Updating INF record ID:', recordId);
+
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
+      const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
+        method: 'PUT',
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+      console.log('Update response:', result);
+
+      if (result.success) {
+        const updatedRecord = {
+          ...record,
+          mr_student_id: formData.studentId,
+          mr_student_name: formData.studentName,
+          mr_student_strand: formData.strand,
+          mr_grade_level: formData.gradeLevel,
+          mr_section: formData.section,
+          mr_school_year_semester: formData.schoolYearSemester,
+          mr_subject: formData.subject,
+          mr_status: formData.status,
+          mr_medical_details: formData.medicalDetails,
+          mr_additional_remarks: formData.additionalRemarks,
+          mr_referred: formData.referredToGCO,
+          mr_is_psychological: formData.isPsychological,
+          mr_is_medical: formData.isMedical,
+        };
+
+        setLastUpdatedRecord(updatedRecord);
+        setShowSuccess(true);
+      } else {
+        throw new Error(result.message || result.error || 'Failed to update record');
+      }
+    } catch (error) {
+      console.error('Error updating medical record:', error);
+      alert(`Error updating record: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleUpdateRecord = () => {
     if (recordType === "OPD") {
@@ -592,8 +593,8 @@ const handleUpdateINFRecord = async () => {
       onRemoveNewFile: handleRemoveNewFile,
       onFileClassifications: handleFileClassifications,
       isEditMode: true,
-      // NEW: Add disabled prop for OPD users
-      isDisabled: userType === "OPD" && recordType !== "OPD"
+      // FIXED: OPD users should be able to edit INF records, so only disable for GCO records
+      isDisabled: userType === "OPD" && recordType === "GCO"
     };
 
     switch (recordType) {

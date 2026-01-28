@@ -7,6 +7,8 @@ import AddButton from '../components/buttons/AddButton';
 import DataTable from '../components/tables/DataTable';
 import AddRecordComponent from '../components/modals/AddRecordComponent';
 import ViewStudentRecordsComponent from '../components/modals/ViewStudentRecordsComponent';
+import ViewRecordComponent from '../components/modals/ViewRecordComponent';
+import EditRecordComponent from '../components/modals/EditRecordComponent';
 import { FaFolder, FaShieldAlt, FaUser } from 'react-icons/fa';
 import './OfficeRecords.css';
 
@@ -28,6 +30,11 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
+  
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -340,22 +347,30 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   const handleRowClick = (recordOrStudent) => {
     if (isSearchMode) {
-      // In search mode, we have student objects with aggregated data
-      setSelectedStudent(recordOrStudent);
-      setShowStudentModal(true);
+      // In search mode with aggregated students view
+      if (recordOrStudent.counselingCount !== undefined) {
+        // This is a student object from aggregated view
+        setSelectedStudent(recordOrStudent);
+        setShowStudentModal(true);
+      } else {
+        // This is a record object from search results
+        setSelectedStudent({
+          id: recordOrStudent.id,
+          name: recordOrStudent.name,
+          strand: recordOrStudent.strand,
+          gradeLevel: recordOrStudent.gradeLevel,
+          section: recordOrStudent.section
+        });
+        setShowStudentModal(true);
+      }
     } else {
       // In default mode, we have individual record objects
-      // Extract student info from the record
-      setSelectedStudent({
-        id: recordOrStudent.id,
-        name: recordOrStudent.name,
-        strand: recordOrStudent.strand,
-        gradeLevel: recordOrStudent.gradeLevel,
-        section: recordOrStudent.section
-      });
-      setShowStudentModal(true);
+      // Open ViewRecordComponent directly with the record
+      setSelectedRecord(recordOrStudent);
+      setShowViewModal(true);
     }
   };
+
 
   // Render loading state
   if (loading) {
@@ -579,6 +594,38 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onClose={handleCloseModal}
         onRecordAdded={handleRecordAdded}
         type={viewType}
+      />
+
+      <ViewRecordComponent
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedRecord(null);
+        }}
+        onEdit={(record) => {
+          setSelectedRecord(null);
+          setShowViewModal(false);
+          setEditRecordData(record);
+          setShowEditModal(true);
+        }}
+        record={selectedRecord}
+        type={viewType}
+      />
+
+      <EditRecordComponent
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        onRecordUpdated={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+          refreshData();
+        }}
+        type={viewType}
+        record={editRecordData}
       />
 
       <ViewStudentRecordsComponent
