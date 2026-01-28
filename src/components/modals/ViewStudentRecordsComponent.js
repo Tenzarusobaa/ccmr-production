@@ -11,6 +11,13 @@ import AddButton from '../buttons/AddButton';
 
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
+// Helper function to truncate text with ellipsis
+const truncateText = (text, maxLength = 100) => {
+  if (!text || typeof text !== 'string') return text;
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
+
 const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordType }) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -258,8 +265,18 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
         return [
           { key: 'caseNo', label: 'Case No.', sortable: true },
           type === "GCO"
-            ? { key: 'remarks', label: 'Additional Remarks', sortable: false }
-            : { key: 'description', label: 'General Description', sortable: false },
+            ? { 
+                key: 'remarks', 
+                label: 'Additional Remarks', 
+                sortable: false,
+                render: (value) => truncateText(value, 100)
+              }
+            : { 
+                key: 'description', 
+                label: 'General Description', 
+                sortable: false,
+                render: (value) => truncateText(value, 100)
+              },
           { key: 'violationLevel', label: 'Severity', sortable: true },
           {
             key: 'status',
@@ -288,7 +305,12 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
               </span>
             )
           },
-          { key: 'concern', label: 'General Concern', sortable: false }, // Changed from 'psychologicalCondition'
+          { 
+            key: 'concern', 
+            label: 'General Concern', 
+            sortable: false,
+            render: (value) => truncateText(value, 100)
+          },
           { key: 'date', label: 'Date', sortable: true }
         ];
       case 'medical':
@@ -306,8 +328,18 @@ const ViewStudentRecordsComponent = ({ isOpen, onClose, student, type, recordTyp
             )
           },
           type === "GCO"
-            ? { key: 'remarks', label: 'Additional Remarks', sortable: false }
-            : { key: 'medicalDetails', label: 'Medical Details', sortable: false },
+            ? { 
+                key: 'remarks', 
+                label: 'Additional Remarks', 
+                sortable: false,
+                render: (value) => truncateText(value, 100)
+              }
+            : { 
+                key: 'medicalDetails', 
+                label: 'Medical Details', 
+                sortable: false,
+                render: (value) => truncateText(value, 100)
+              },
           { key: 'referred', label: 'Referred to GCO', sortable: true },
           { key: 'isPsychological', label: 'Psychological', sortable: true },
           { key: 'isMedical', label: 'Medical', sortable: true },
