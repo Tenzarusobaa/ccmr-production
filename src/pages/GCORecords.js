@@ -1,5 +1,6 @@
 // src/pages/GCORecords.js
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import NavBar from '../components/navigation/NavBar';
 import Breadcrumbs from '../components/navigation/Breadcrumbs';
 import SearchBar from '../components/search/SearchBar';
@@ -15,6 +16,7 @@ import EditRecordComponent from '../components/modals/EditRecordComponent';
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
 const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+  const location = useLocation();
   const name = userData?.name || localStorage.getItem('userName') || 'User';
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
   const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
@@ -34,6 +36,15 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editRecordData, setEditRecordData] = useState(null);
+  const [currentFilter, setCurrentFilter] = useState(null);
+
+  // Handle filter from navigation
+  useEffect(() => {
+    if (location.state?.filter) {
+      setCurrentFilter(location.state.filter);
+      console.log('Received filter from navigation:', location.state.filter);
+    }
+  }, [location.state]);
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -45,8 +56,28 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   };
 
   const getTitle = () => {
-    if (viewType === "GCO") return "Counseling Records";
-    if (viewType === "INF") return "Psychological Records";
+    if (viewType === "GCO") {
+      if (currentFilter) {
+        switch(currentFilter) {
+          case 'TO_SCHEDULE': return "Counseling Records - To Schedule";
+          case 'SCHEDULED': return "Counseling Records - Scheduled";
+          case 'DONE': return "Counseling Records - Done";
+          default: return "Counseling Records";
+        }
+      }
+      return "Counseling Records";
+    }
+    if (viewType === "INF") {
+      if (currentFilter) {
+        switch(currentFilter) {
+          case 'TO_SCHEDULE': return "Psychological Records - To Schedule";
+          case 'SCHEDULED': return "Psychological Records - Scheduled";
+          case 'DONE': return "Psychological Records - Done";
+          default: return "Psychological Records";
+        }
+      }
+      return "Psychological Records";
+    }
     return "Counseling Records";
   };
 
@@ -202,8 +233,15 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     setSortConfig(sortConfig);
   };
 
+  // Clear filter
+  const clearFilter = () => {
+    setCurrentFilter(null);
+    // Clear the navigation state
+    window.history.replaceState({}, document.title);
+  };
+
   // Fetch all counseling records (default view) - UPDATED for INF view
-  const fetchAllRecords = async () => {
+  const fetchAllRecords = async (filter = null) => {
     try {
       setLoading(true);
       setError(null);
@@ -219,7 +257,10 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         endpoint = `${API_BASE_URL}api/counseling-records`;
       }
 
-      const response = await fetch(endpoint);
+      // Add filter parameter if provided
+      const url = filter ? `${endpoint}?filter=${filter}` : endpoint;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -284,7 +325,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
     if (!query.trim()) {
       // If search is cleared, show default records view
-      fetchAllRecords();
+      fetchAllRecords(currentFilter);
       return;
     }
 
@@ -334,13 +375,13 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
     } else {
-      fetchAllRecords();
+      fetchAllRecords(currentFilter);
     }
   };
 
   useEffect(() => {
-    fetchAllRecords();
-  }, [viewType]);
+    fetchAllRecords(currentFilter);
+  }, [viewType, currentFilter]);
 
   const handleAddRecord = () => {
     setShowAddModal(true);
@@ -540,7 +581,17 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
+            <h2><FaFolder /> {getTitle()} 
+              {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
+              {currentFilter && !isSearchMode && (
+                <span className="filter-indicator">
+                  (Filtered: {currentFilter})
+                  <button onClick={clearFilter} className="clear-filter-btn">
+                    Clear Filter
+                  </button>
+                </span>
+              )}
+            </h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
             {viewType === "GCO" && type === "GCO" && (
