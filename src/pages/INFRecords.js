@@ -1,5 +1,6 @@
 // src/pages/INFRecords.js
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import NavBar from '../components/navigation/NavBar';
 import Breadcrumbs from '../components/navigation/Breadcrumbs';
 import SearchBar from '../components/search/SearchBar';
@@ -16,6 +17,7 @@ import EditRecordComponent from '../components/modals/EditRecordComponent';
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
 const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+  const location = useLocation();
   const name = userData?.name || localStorage.getItem('userName') || 'User';
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
   const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
@@ -36,6 +38,16 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editRecordData, setEditRecordData] = useState(null);
+
+  // Handle filter from navigation
+  useEffect(() => {
+    if (location.state?.filter) {
+      const filter = location.state.filter;
+      setCurrentFilter(filter === 'MEDICAL' ? 'MEDICAL' : 
+                      filter === 'PSYCHOLOGICAL' ? 'PSYCHOLOGICAL' : 'ALL');
+      console.log('Received filter from navigation:', location.state.filter);
+    }
+  }, [location.state]);
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -258,6 +270,8 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     const newFilter = filters[nextIndex];
 
     setCurrentFilter(newFilter);
+    // Clear navigation state when manually cycling filter
+    window.history.replaceState({}, document.title);
 
     // If we're in search mode with a query, refresh search with new filter
     if (isSearchMode && searchQuery) {
@@ -269,6 +283,13 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       // In default mode, fetch all records with filter applied
       fetchAllRecords();
     }
+  };
+
+  // Clear filter
+  const clearFilter = () => {
+    setCurrentFilter('ALL');
+    // Clear the navigation state
+    window.history.replaceState({}, document.title);
   };
 
   const handleSort = (sortConfig) => {
@@ -509,7 +530,17 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getFilterTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
+            <h2><FaFolder /> {getFilterTitle()} 
+              {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
+              {location.state?.filter && !isSearchMode && (
+                <span className="filter-indicator">
+                  (Filtered from Analytics)
+                  <button onClick={clearFilter} className="clear-filter-btn">
+                    Clear Filter
+                  </button>
+                </span>
+              )}
+            </h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {viewType === "INF" && type === "INF" && (
