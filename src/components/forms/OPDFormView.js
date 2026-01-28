@@ -161,18 +161,30 @@ const OPDFormView = ({ record, primaryColor, hideFields = false }) => {
         </div>
       </div>
 
-      {!hideFields && ( // Only show description section if not hidden
-        <div className="form-section-full">
-          <h4 style={{ color: primaryColor }}>Description *</h4>
-          <div className="form-group">
-            <label htmlFor="generalDescription">General Description *</label>
-            <textarea
-              id="generalDescription"
-              value={record.description || record.generalDescription || ''}
-              rows="4"
-              disabled
-            ></textarea>
-          </div>
+      <div className="form-section-full">
+        <h4 style={{ color: primaryColor }}>Description *</h4>
+        {!hideFields ? ( // Show full description section when not hidden
+          <>
+            <div className="form-group">
+              <label htmlFor="generalDescription">General Description *</label>
+              <textarea
+                id="generalDescription"
+                value={record.description || record.generalDescription || ''}
+                rows="4"
+                disabled
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="additionalRemarks">Additional Remarks</label>
+              <textarea
+                id="additionalRemarks"
+                value={record.remarks || record.additionalRemarks || ''}
+                rows="2"
+                disabled
+              ></textarea>
+            </div>
+          </>
+        ) : ( // When hidden, only show additional remarks
           <div className="form-group">
             <label htmlFor="additionalRemarks">Additional Remarks</label>
             <textarea
@@ -182,8 +194,8 @@ const OPDFormView = ({ record, primaryColor, hideFields = false }) => {
               disabled
             ></textarea>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="form-section-full">
         <h4 style={{ color: primaryColor }}>Attachments</h4>
