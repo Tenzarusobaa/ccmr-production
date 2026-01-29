@@ -168,7 +168,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch(`${API_BASE_URL}/api/case-records`, {
+      const response = await fetch(`${API_BASE_URL}api/case-records`, {
         method: 'POST',
         body: formDataToSend
       });
