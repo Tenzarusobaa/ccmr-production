@@ -399,7 +399,7 @@ const INFForm = ({
               value={formData.referredToGCO} 
               onChange={onInputChange}
               required
-              //disabled={isDisabled || isOPDUser} // Disable for OPD users
+              disabled={isDisabled || isOPDUser} // Disable for OPD users
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>
