@@ -62,7 +62,7 @@ const Login = ({ onLogin }) => {
     setDeactivatedUser(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ const Login = ({ onLogin }) => {
       console.log('Google response received');
 
       // Send token to backend for verification
-      const apiResponse = await fetch('http://localhost:5000/api/google-login', {
+      const apiResponse = await fetch('https://ccmr-final-node-production.up.railway.app/api/google-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
