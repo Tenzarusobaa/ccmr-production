@@ -442,7 +442,7 @@ const EditRecordComponent = ({
       console.log('Time value:', formData.time);
 
       // Use environment variable for API base URL
-      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https//localhost:5000/';
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
       const response = await fetch(`${API_BASE_URL}api/counseling-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend,
@@ -610,7 +610,7 @@ const EditRecordComponent = ({
       console.log('Uploader type being sent:', formData.uploaderType || type);
       console.log('referredToGCO being sent:', formData.referredToGCO); // Debug log
 
-      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https//localhost:5000/';
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
       const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend,
