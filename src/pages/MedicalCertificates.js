@@ -8,7 +8,7 @@ import DataTable from '../components/tables/DataTable';
 import { FaFolder, FaShieldAlt, FaFilePdf, FaFileWord, FaFile, FaDownload } from 'react-icons/fa';
 import './OfficeRecords.css'; // Use the same CSS as other office records pages
 
-const API_BASE_URL = 'http://localhost:5000/';
+const API_BASE_URL = 'https://ccmr-final-node-production.up.railway.app/';
 
 const MedicalCertificates = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const location = useLocation();
