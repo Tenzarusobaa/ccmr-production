@@ -24,7 +24,7 @@ const UserEditModal = ({
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const API_BASE = "http://localhost:5000/api";
+  const API_BASE = "https://ccmr-final-node-production.up.railway.app/api";
 
   useEffect(() => {
     if (user) {
